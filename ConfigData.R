@@ -16,12 +16,13 @@ readConfig <- function(configFile){
   testcdInd <- str_detect(configFileColumns, "(TESTCD)$")
   specInd <- str_detect(configFileColumns, "(SPEC)$")
   speciesInd <- str_detect(configFileColumns, "SPECIES")
+  strainInd <- str_detect(configFileColumns, "(STRAIN)$")
   sexInd <- str_detect(configFileColumns, "SEX")
   meanInd <- str_detect(configFileColumns, "(STRESM)$")
   sdInd <- str_detect(configFileColumns, "(STRESSD)$")
   unitInd <- str_detect(configFileColumns, "(STRESU)$")
-  factorInd <- str_detect(configFileColumns, "(FACT)$")
-  proportionInd <- str_detect(configFileColumns,"(PROP)$")
+  factorInd <- str_detect(configFileColumns, "(STRESC)$")
+  proportionInd <- str_detect(configFileColumns,"(FREQ)$")
   
   
   data.frame(
@@ -30,6 +31,7 @@ readConfig <- function(configFile){
     testcd = configFile[testcdInd],
     spec = configFile[specInd],
     species = configFile[speciesInd],
+    strain = configFile[strainInd],
     sex = configFile[sexInd],
     mean = configFile[meanInd],
     sd = configFile[sdInd],
@@ -58,7 +60,7 @@ getConfig <- function(domain) {
   }
 }
 
-getTestCDs <- function(aDomain, aSpecies) {
+getTestCDs <- function(aDomain, aSex, aSpecies, aStrain) {
   switch(aDomain,
          "BW" = {aConfig <- getConfig("BW")},
          "CL" = {aConfig <- getConfig("CL")},
@@ -71,10 +73,62 @@ getTestCDs <- function(aDomain, aSpecies) {
          "PC" = {aConfig <- getConfig("PC")}
   )
   testcd_ind <- str_which(names(aConfig), "TESTCD")
-  aList <- aConfig[toupper(aConfig$SPECIES) == toupper(aSpecies),testcd_ind]
-  print(aList)
-  if (length(aList)==0) {
-    stop(paste("Unable to find configurated tests for",aDomain,"for this species",aSpecies))
-  }
+  # depending upon the domain, filter down to species or not
+  switch(aDomain,
+         "BW" = {
+           aList <- aConfig[toupper(aConfig$SEX) == toupper(aSex) & toupper(aConfig$SPECIES) == toupper(aSpecies)&toupper(aConfig$STRAIN) == toupper(aStrain),testcd_ind]
+           if (length(aList)==0) {
+             stop(paste("Unable to find configurated tests for",aDomain,"for this species",aSpecies,"and strain",aStrain))
+           }
+         },
+         "CL" = {
+           aList <- aConfig[toupper(aConfig$SEX) == toupper(aSex) & toupper(aConfig$SPECIES) == toupper(aSpecies)&toupper(aConfig$STRAIN) == toupper(aStrain),testcd_ind]
+           if (length(aList)==0) {
+             stop(paste("Unable to find configurated tests for",aDomain,"for this species",aSpecies,"and strain",aStrain))
+           }
+         },
+         "LB" = {
+           aList <- aConfig[toupper(aConfig$SEX) == toupper(aSex) & toupper(aConfig$SPECIES) == toupper(aSpecies)&toupper(aConfig$STRAIN) == toupper(aStrain),testcd_ind]
+           if (length(aList)==0) {
+             stop(paste("Unable to find configurated tests for",aDomain,"for this species",aSpecies,"and strain",aStrain))
+           }
+         },
+         "MI" = {
+           aList <- aConfig[toupper(aConfig$SEX) == toupper(aSex) & toupper(aConfig$SPECIES) == toupper(aSpecies)&toupper(aConfig$STRAIN) == toupper(aStrain),testcd_ind]
+           if (length(aList)==0) {
+             stop(paste("Unable to find configurated tests for",aDomain,"for this species",aSpecies,"and strain",aStrain))
+           }
+         },
+         "PM" = {
+           aList <- aConfig[toupper(aConfig$SEX) == toupper(aSex) & toupper(aConfig$SPECIES) == toupper(aSpecies)&toupper(aConfig$STRAIN) == toupper(aStrain),testcd_ind]
+           if (length(aList)==0) {
+             stop(paste("Unable to find configurated tests for",aDomain,"for this species",aSpecies,"and strain",aStrain))
+           }
+         },
+         "MA" = {
+           aList <- aConfig[toupper(aConfig$SEX) == toupper(aSex) & toupper(aConfig$SPECIES) == toupper(aSpecies)&toupper(aConfig$STRAIN) == toupper(aStrain),testcd_ind]
+           if (length(aList)==0) {
+             stop(paste("Unable to find configurated tests for",aDomain,"for this species",aSpecies,"and strain",aStrain))
+           }
+         },
+         "OM" = {
+           aList <- aConfig[toupper(aConfig$SEX) == toupper(aSex) & toupper(aConfig$SPECIES) == toupper(aSpecies)&toupper(aConfig$STRAIN) == toupper(aStrain),testcd_ind]
+           if (length(aList)==0) {
+             stop(paste("Unable to find configurated tests for",aDomain,"for this species",aSpecies,"and strain",aStrain))
+           }
+         },
+         "PP" = {
+           aList <- aConfig[testcd_ind]
+           if (length(aList)==0) {
+             stop(paste("Unable to find configurated tests for",aDomain))
+           }
+         },
+         "PC" = {
+           aList <- aConfig[testcd_ind]
+           if (length(aList)==0) {
+             stop(paste("Unable to find configurated tests for",aDomain))
+           }
+         }
+  )
   as.data.frame(unique(aList))
 }

@@ -167,7 +167,7 @@ getSENDLastTestCodeName <- function(aCol,aDomain) {
     # print(paste("Last test code is ",lastTestCode,aValue))
   } else {
     # some domains, this must come from a configuration file
-    print(paste("  Reading test name from code",aDomain,lastTestCode,sep=":"))
+    # print(paste("  Reading test name from code",aDomain,lastTestCode,sep=":"))
     aValue <- getMatchColumn(aDomain,paste0(aDomain,"TESTCD"),lastTestCode,paste0(aDomain,"TEST"))
   }
   aValue

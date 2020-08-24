@@ -22,7 +22,7 @@ getSpecs <- function(aDomain,aSex,aTestCD) {
   )
   aList <- list()  
   if (exists("aConfig")) {
-    print("Obtaining specimen list")
+    # print("Obtaining specimen list")
     # read from configuration file
     ## Pull proportions for this sex,testcd
     testcd_ind <- str_which(names(aConfig), "TESTCD")
@@ -32,7 +32,7 @@ getSpecs <- function(aDomain,aSex,aTestCD) {
     theSpecs <- testConfig[,spec_ind]
     aList <- as.list(theSpecs)
   } else {
-    print("No specimen list")
+    # print("No specimen list")
     aList <- append(aList,"No Specimen")  
   }
 unique(aList)
@@ -41,15 +41,13 @@ unique(aList)
 # from configuration, get column based upon incoming column (like testcd to test)
 getMatchColumn <- function(aDomain,aColumn1,aValue1,aColumn2) {
   configFiles <- list.files("configs)")
+  aConfig <- getConfig(aDomain)
   #print(paste("Matching columns from ",aColumn1,aValue1,aColumn2))
-  df1 <- unique(getConfig(aDomain)[aColumn1])
-  df2 <- unique(getConfig(aDomain)[aColumn2])
   # FIXME might need other discriminating factors like Sex, Species,...
-  # find position in first list
-  df3 <- cbind(as.data.frame(df1), as.data.frame(df2)) 
   # get first matching one
-  print(paste("        answer",df3[df3[1]==aValue1,][2][1]))
-  answer <- df3[df3[1]==aValue1,][2][1]
+  answer <- aConfig[aConfig[aColumn1]==aValue1,][aColumn2][1,1]
+  # print(paste("        answer",answer))
+  answer
 }
 
 #check if data frame has a DY component
@@ -130,22 +128,27 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
         # deterimine specimens to use
         for (iDay in startDay:endDay) {
           # loop over the tests for this domain
-          aCodes <- getTestCDs(aDomain, input$species)
+          aCodes <- getTestCDs(aDomain, aSex,input$species, input$strain)
           print(aCodes)
           for(i in 1:nrow(aCodes)) {
             aTestCD <-  as.character(aCodes[i,])
             aSpecs <- getSpecs(aDomain,aSex,aTestCD)
+            # print(paste("For this test code:",aTestCD))
             if (!skipRow(aTestCD,iDay,endDay)) {
               for(iSpec in 1:length(aSpecs)) {
+                skipDataRow <<- FALSE
                 aSpec <- as.character(aSpecs[iSpec])
-                # print(paste(" About to create row animal for",aTestCD, iDay, anAnimal, aTreatment, aSex,aSpec))
+                # print(paste(" About to create row animal for",aTestCD, iDay, anAnimal, aTreatment, aSex,aSpec,input$species, input$strain))
                 aRowList <<- createRowAnimal(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,
-                input$studyName,aTestCD,iDay,aSpec)
+                input$studyName,aTestCD,iDay,aSpec,input$species, input$strain)
                 # replace empties with NA
                 # print(paste(" inserting",aRowList))
                 aRowList <<- sub("$^", NA, aRowList)
-                aDF[aRow,] <<- aRowList        
-                aRow <- aRow + 1
+                if (!skipDataRow) {
+                  # print("Debug adding row")
+                  aDF[aRow,] <<- aRowList        
+                  aRow <- aRow + 1
+                } # end of skip data row check
               } # end of loop on specimen
             } # end of skipRow check
           } # end of test loop
@@ -157,15 +160,15 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
 }
 
 createRowAnimal <- function(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,aStudyID,
-                            aTestCD,iDay,aSpec) {
+                            aTestCD,iDay,aSpec,aSpecies,aStrain) {
  aList <- list() 
- #print(paste("Creating row for:",aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD))
+ # print(paste("Creating row for:",aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,aSpec,aSpecies,aStrain))
  # print(paste("Getting values for:",labels(aDF)[2][[1]]))
  # loop on fields in data frame
  for (aCol in labels(aDF)[2][[1]]) {
    # add value to the list of column values, based upon the column name
    columnData <- getColumnData(aCol,aSex,aTreatment,anAnimal,aRow,aDomain,
-                                aStudyID,aTestCD,iDay,aSpec)
+                                aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain)
    aList <- c(aList, columnData)
  }
  # print(paste("  FIXME values are:",aList))

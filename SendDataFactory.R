@@ -360,7 +360,7 @@ server <- function(input, output, session) {
     testDomains <- c("BW", "CL", "FW", "LB", "OM", "MA", "MI", "EG","PC","PP")
     testCategories <- c("Body weights","Clinical Observations","Food consumption (not ready)","Lab Tests",
                         "Organ weights (not ready)","Macropathology","Micropathology","ECG (not ready)",
-                        "Pharmacokinetic Concentrations (not ready)","Pharmacokinetic Parameters")
+                        "Pharmacokinetic Concentrations","Pharmacokinetic Parameters")
     checkboxGroupInput('testCategories','Data domains to create:',choiceValues=testDomains,choiceNames=testCategories,selected=testCategories)
   })
   
