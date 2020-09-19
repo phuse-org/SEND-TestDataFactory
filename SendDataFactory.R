@@ -442,29 +442,36 @@ server <- function(input, output, session) {
   
 
   output$showBGConfig <- renderTable({
-    BGconfig
+    BGconfig[str_to_upper(str_trim(BGconfig$SPECIES)) == input$species, ]
   })
   
   output$showBWConfig <- renderTable({
-    BWconfig
+    BWconfig[str_to_upper(str_trim(BWconfig$SPECIES)) == input$species &
+             str_to_upper(str_trim(BWconfig$STRAIN)) == input$strain, ]
   })
   output$showCLConfig <- renderTable({
-    CLconfig
+    CLconfig[str_to_upper(str_trim(CLconfig$SPECIES)) == input$species &
+             str_to_upper(str_trim(CLconfig$STRAIN)) == input$strain, ]
   })
   output$showLBConfig <- renderTable({
-    LBconfig
+    LBconfig[str_to_upper(str_trim(LBconfig$SPECIES)) == input$species &
+               str_to_upper(str_trim(LBconfig$STRAIN)) == input$strain, ]
   })
   output$showMAConfig <- renderTable({
-    MAconfig
+    MAconfig[str_to_upper(str_trim(MAconfig$SPECIES)) == input$species &
+               str_to_upper(str_trim(MAconfig$STRAIN)) == input$strain, ]
   })
   output$showMIConfig <- renderTable({
-    MIconfig
+    MIconfig[str_to_upper(str_trim(MIconfig$SPECIES)) == input$species &
+               str_to_upper(str_trim(MIconfig$STRAIN)) == input$strain, ]
   })
   output$showPCConfig <- renderTable({
-    PCconfig
+    PCconfig[str_to_upper(str_trim(PCconfig$SPECIES)) == input$species &
+               str_to_upper(str_trim(PCconfig$STRAIN)) == input$strain, ]
   })
   output$showPPConfig <- renderTable({
-    PPconfig
+    PPconfig[str_to_upper(str_trim(PPconfig$SPECIES)) == input$species &
+               str_to_upper(str_trim(PPconfig$STRAIN)) == input$strain, ]
   })
   
       output$TSTable <- renderRHandsontable({
