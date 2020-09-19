@@ -265,6 +265,13 @@ if (file.exists('~/passwordGitHub.R')) {
   Authenticate <- FALSE
 }
 
+# read configurations to be ready to display them at any time
+configList <- list("BG","BW","CL","LB","MA","MI","PC","PP")
+for (domain in configList) {
+  getConfig(domain);
+}
+
+
 # Set Reactive Values
 values <- reactiveValues()
 
@@ -433,6 +440,32 @@ server <- function(input, output, session) {
     clOut
   })
   
+
+  output$showBGConfig <- renderTable({
+    BGconfig
+  })
+  
+  output$showBWConfig <- renderTable({
+    BWconfig
+  })
+  output$showCLConfig <- renderTable({
+    CLconfig
+  })
+  output$showLBConfig <- renderTable({
+    LBconfig
+  })
+  output$showMAConfig <- renderTable({
+    MAconfig
+  })
+  output$showMIConfig <- renderTable({
+    MIconfig
+  })
+  output$showPCConfig <- renderTable({
+    PCconfig
+  })
+  output$showPPConfig <- renderTable({
+    PPconfig
+  })
   
       output$TSTable <- renderRHandsontable({
      rhandsontable(TSFromFile) %>%
@@ -654,10 +687,11 @@ ui <- dashboardPage(
                               withSpinner(uiOutput('AnimalsPerGroup'),type=7,proxy.height='200px'),
                               withSpinner(uiOutput('TKAnimalsPerGroup'),type=7,proxy.height='200px')
                     ),
-                     menuItem('Data selections',icon=icon('flask'),startExpanded=F,
+                    menuItem('Data selections',icon=icon('flask'),startExpanded=F,
                               withSpinner(uiOutput('OutputCategories'),type=7,proxy.height='200px')
                      ),
-                     menuItem('Produce Data',icon=icon('angle-double-right'),startExpanded=T,
+                    menuItem('Data configurations', tabName = "Data_Configuration", icon = icon('database')),
+                    menuItem('Produce Data',icon=icon('angle-double-right'),startExpanded=T,
                              actionButton('produceDatasets',label='Produce datasets')
                      ),
                     menuItem("Show datasets", tabName = "showDatasets", icon = icon('database')), 
@@ -691,9 +725,23 @@ ui <- dashboardPage(
               rHandsontableOutput("TSTable")
       ),
       tabItem(tabName = "Dosing_Configuration",
-              h3("Dosing configurration (editable)"),
+              h3("Dosing configuration (editable)"),
               actionButton('saveDoseConf',label='Save'),
               rHandsontableOutput("DoseTable")
+      ),
+      tabItem(tabName = "Data_Configuration",
+              h3("Domain Configurations"),
+              h4("(values can be changed by editing the files with Excel)"),
+              navbarPage("", id = "navConfigs",
+                         tabPanel("Body Weight Gain",tableOutput("showBGConfig")),
+                         tabPanel("Body Weights",tableOutput("showBWConfig")),
+                         tabPanel("Clinical Observations",tableOutput("showCLConfig")),
+                         tabPanel("Lab Results",tableOutput("showLBConfig")),
+                         tabPanel("Macroscopic Findings",tableOutput("showMAConfig")),
+                         tabPanel("Microscopic Findings",tableOutput("showMIConfig")),
+                         tabPanel("Pharmacokinetic Concentrations",tableOutput("showPCConfig")),
+                         tabPanel("Pharmacokinetic Parameters",tableOutput("showPPConfig"))
+              )
       )
     )
   )  
