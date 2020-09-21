@@ -300,10 +300,9 @@ server <- function(input, output, session) {
   })
   
   # Display Send versions
-  output$SENDVersions <- renderUI({
-    # FIXME - these should come from a configuration file
+  output$SENDVersion <- renderUI({
     SENDVersion <- c("3.0","3.1", "DART 1.1")
-    radioButtons('SENDVersions','Select SEND Version:',SENDVersion,selected=SENDVersion[1])
+    radioButtons('SENDVersion','Select SEND Version:',SENDVersion,selected=SENDVersion[1])
   })
 
   # Display output type
@@ -466,12 +465,10 @@ server <- function(input, output, session) {
                str_to_upper(str_trim(MIconfig$STRAIN)) == input$strain, ]
   })
   output$showPCConfig <- renderTable({
-    PCconfig[str_to_upper(str_trim(PCconfig$SPECIES)) == input$species &
-               str_to_upper(str_trim(PCconfig$STRAIN)) == input$strain, ]
+    PCconfig
   })
   output$showPPConfig <- renderTable({
-    PPconfig[str_to_upper(str_trim(PPconfig$SPECIES)) == input$species &
-               str_to_upper(str_trim(PPconfig$STRAIN)) == input$strain, ]
+    PPconfig
   })
   
       output$TSTable <- renderRHandsontable({
@@ -674,7 +671,7 @@ ui <- dashboardPage(
                    sidebarMenu(id='sidebar',
                     menuItem('Output settings',icon=icon('database'),startExpanded=T,
                               selectInput("CTSelection", "CT Version", choices = CTVersions, selected = "2020-05-08"),
-                              withSpinner(uiOutput('SENDVersions'),type=7,proxy.height='200px'),
+                              withSpinner(uiOutput('SENDVersion'),type=7,proxy.height='200px'),
                               withSpinner(uiOutput('Outputtype'),type=7,proxy.height='200px')
                      ),
                     menuItem("Show structure", tabName = "SEND_IG_Structure", icon = icon('calendar')), 
@@ -737,7 +734,7 @@ ui <- dashboardPage(
               rHandsontableOutput("DoseTable")
       ),
       tabItem(tabName = "Data_Configuration",
-              h3("Domain Configurations"),
+              h3("Domain Configurations - matching selected species and strain"),
               h4("(values can be changed by editing the files with Excel)"),
               navbarPage("", id = "navConfigs",
                          tabPanel("Body Weight Gain",tableOutput("showBGConfig")),

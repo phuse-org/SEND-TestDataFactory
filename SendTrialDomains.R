@@ -73,10 +73,7 @@ txnames <- c(
 setTSFile <- function(input) {
   # create data frame based on structure
   aDomain <- "TS"
-  # print(input$studyName)
-  # print(input$CTSelection)
-  # print(paste("SEND Implementation Guide Version ",input$SENDVersions))
-  
+
   theColumns <- dfSENDIG[dfSENDIG$Domain==aDomain,]$Column
   theLabels <- dfSENDIG[dfSENDIG$Domain==aDomain,]$Label
   tsOut <<- setNames(data.frame(matrix(ncol = length(theColumns), nrow = 1)),
@@ -133,14 +130,14 @@ setTSFile <- function(input) {
                           "")        
     aRow <- aRow + 1
   }
-  if (!is.null(input$SENDVersions)) {
+  if (!is.null(input$SENDVersion)) {
     tsOut[aRow,] <<- list(input$studyName,
                           aDomain,
                           aRow,
                           "",
                           "SNDIGVER",
                           "SEND Implementation Guide Version",
-                          paste("SEND Implementation Guide Version",input$SENDVersions),
+                          paste("SEND Implementation Guide Version",input$SENDVersion),
                           "")        
     aRow <- aRow + 1
   }

@@ -130,7 +130,7 @@ getStresuUnit <- function() {
   lastOrresu  
 }
 # returns column data based upon the column name
-getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain) {
+getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion) {
   aData <- ""
   aSeqCol <- paste(aDomain,"SEQ",sep="")
   aTestCDCol <- paste(aDomain,"TESTCD",sep="")
@@ -142,6 +142,8 @@ getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,a
   aSTRESUCol <- paste(aDomain,"STRESU",sep="")
   aSPECCol <- paste(aDomain,"SPEC",sep="")
   aDay <- paste(aDomain,"DY",sep="")
+  aNOMDYCol <- paste(aDomain,"NOMDY",sep="")
+  aNOMLBLCol <- paste(aDomain,"NOMLBL",sep="")
   aData <- NA
   # Next line for help in debugging
   # print(paste(" Debug 3 Getting column data for:",aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,aSpec),sep=":")
@@ -160,7 +162,12 @@ getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,a
   if (aCol==aSTRESNCol) {aData <- suppressWarnings(as.numeric(lastOrres))}
   if (aCol==aSTRESUCol) {aData <- getStresuUnit()}
   if (aCol==aDay) {aData <- iDay}
-  if (aCol=="VISITDY") {aData <- iDay}
+  if (aSENDVersion=="3.0") {
+    if (aCol=="VISITDY") {aData <- iDay}
+  } else {
+    if (aCol==aNOMDYCol) {aData <- iDay}
+    if (aCol==aNOMLBLCol) {aData <- paste("Day",iDay)}
+  }
   if (aCol==aSPECCol) aData <- aSpec
   # return the data
   # print(paste("               DEBUG aData returned: ",aData))

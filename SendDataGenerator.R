@@ -19,6 +19,8 @@ getSpecs <- function(aDomain,aSex,aTestCD) {
          "MI" = {aConfig <- getConfig("MI")},
          "MA" = {aConfig <- getConfig("MA")},
          "OM" = {aConfig <- getConfig("OM")},
+         "PC" = {aConfig <- getConfig("PC")},
+         "PP" = {aConfig <- getConfig("PP")}
   )
   aList <- list()  
   if (exists("aConfig")) {
@@ -140,7 +142,7 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
                 aSpec <- as.character(aSpecs[iSpec])
                 # print(paste(" About to create row animal for",aTestCD, iDay, anAnimal, aTreatment, aSex,aSpec,input$species, input$strain))
                 aRowList <<- createRowAnimal(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,
-                input$studyName,aTestCD,iDay,aSpec,input$species, input$strain)
+                input$studyName,aTestCD,iDay,aSpec,input$species, input$strain , input$SENDVersion)
                 # replace empties with NA
                 # print(paste(" inserting",aRowList))
                 aRowList <<- sub("$^", NA, aRowList)
@@ -160,7 +162,7 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
 }
 
 createRowAnimal <- function(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,aStudyID,
-                            aTestCD,iDay,aSpec,aSpecies,aStrain) {
+                            aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion) {
  aList <- list() 
  # print(paste("Creating row for:",aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,aSpec,aSpecies,aStrain))
  # print(paste("Getting values for:",labels(aDF)[2][[1]]))
@@ -168,7 +170,7 @@ createRowAnimal <- function(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,aStudyID,
  for (aCol in labels(aDF)[2][[1]]) {
    # add value to the list of column values, based upon the column name
    columnData <- getColumnData(aCol,aSex,aTreatment,anAnimal,aRow,aDomain,
-                                aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain)
+                                aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion)
    aList <- c(aList, columnData)
  }
  # print(paste("  FIXME values are:",aList))
