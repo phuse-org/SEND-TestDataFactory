@@ -1,16 +1,17 @@
 # These functions work together with the SendDataFactory
 
 
-getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain){
+getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime){
   aDomainConfig <- getConfig(aDomain)
   ## If Domain is numeric
   if(aDomain %in% c("BG", "BW", "EG", "FW", "LB", "PC", "PP", "VS")){
     ## If config found
     if(exists("aDomainConfig") && !is.null(aDomainConfig)) {
-      # print(paste(" Debug 1 Determining mean: ",aDomain," sex: ",aSex," testcd: ",aTestCD))
+      printDebug(paste(" Debug 1 Determining mean: ",aDomain," sex: ",aSex," testcd: ",aTestCD))
       testcd_ind <- str_which(names(aDomainConfig), "TESTCD")
       mean_ind <- str_which(names(aDomainConfig), "STRESM")
       sd_ind <- str_which(names(aDomainConfig), "STRESSD")
+      eltm_ind <- str_which(names(aDomainConfig), "ELTM")
       aValueMean <- aDomainConfig[aDomainConfig$SEX == aSex &
                                     aDomainConfig[,testcd_ind] == aTestCD,
                                   mean_ind]
@@ -29,9 +30,28 @@ getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain){
                                   aDomainConfig[,testcd_ind] == aTestCD,
                                 sd_ind]
       }
+      # for some domains, check as well to the time level
+      if(aDomain %in% c("PC")){
+        printDebug(paste("Getting to the time level for mean",aTime))
+        aValueMean <- aDomainConfig[aDomainConfig$SEX == aSex & 
+                                      aDomainConfig[,testcd_ind] == aTestCD &
+                                      aDomainConfig[,eltm_ind] == aTime,
+                                    mean_ind]
+        if (is.null(aValueMean)) {
+          stop(paste("Unable to find configurated mean value for this time",aTime))
+        }
+        printDebug(paste("Getting to the time level for sd",aTime))
+        aValueSD <- aDomainConfig[aDomainConfig$SEX == aSex & 
+                                    aDomainConfig[,testcd_ind] == aTestCD &
+                                    aDomainConfig[,eltm_ind] == aTime,
+                                  sd_ind]
+      }
       aValue <- round(rnorm(1, aValueMean, aValueSD), digits=2)
-      # print(paste(" DEBUG Domain: ",aDomain," sex: ",aSex," testcd: ",aTestCD))
-      # print(paste("    DEBUG Test cd: ",testcd_ind," mean index and value: ",mean_ind,aValueMean,aValue))
+      # now increase or decrease this based upon synthetic time response
+      aTimeResponse <- getTimeResponse(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay)
+      aValue <- aValue + aTimeResponse
+      printDebug(paste(" DEBUG Domain: ",aDomain," sex: ",aSex," testcd: ",aTestCD))
+      printDebug(paste("    DEBUG Test cd: ",testcd_ind," mean index and value: ",mean_ind,aValueMean,aValue))
       ## If config not found
     } else {
       aValue <- round(runif(1, 2.0, 100), digits=2)
@@ -112,7 +132,7 @@ getOrresUnit <- function(aCol,aDomain,aSex,aTestCD,aSpecies,aStrain){
       aValue1 <- aDomainConfig[aDomainConfig$SEX == aSex & aDomainConfig$SPECIES == aSpecies & aDomainConfig$STRAIN == aStrain &
                                     aDomainConfig[,testcd_ind] == aTestCD,unitInd]
     } else {
-      aValue1 <- aDomainConfig[aDomainConfig$SEX == aSex & aDomainConfig[,testcd_ind] == aTestCD,unitInd]
+      aValue1 <- unique(aDomainConfig[aDomainConfig$SEX == aSex & aDomainConfig[,testcd_ind] == aTestCD,unitInd])
     }
     if (!is.null(aValue1)) {
       aValue <- aValue1
@@ -130,7 +150,7 @@ getStresuUnit <- function() {
   lastOrresu  
 }
 # returns column data based upon the column name
-getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion) {
+getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime) {
   aData <- ""
   aSeqCol <- paste(aDomain,"SEQ",sep="")
   aTestCDCol <- paste(aDomain,"TESTCD",sep="")
@@ -144,9 +164,14 @@ getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,a
   aDay <- paste(aDomain,"DY",sep="")
   aNOMDYCol <- paste(aDomain,"NOMDY",sep="")
   aNOMLBLCol <- paste(aDomain,"NOMLBL",sep="")
+  aELTM <- paste(aDomain,"ELTM",sep="")
+  aTPT <- paste(aDomain,"TPT",sep="")
+  aTPTNUM <- paste(aDomain,"TPTNUM",sep="")
+  aTPTREF <- paste(aDomain,"TPTREF",sep="")
+  
   aData <- NA
   # Next line for help in debugging
-  # print(paste(" Debug 3 Getting column data for:",aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,aSpec),sep=":")
+  printDebug(paste(" Debug 3 Getting column data for:",aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,aSpec,aTime,sep=":"))
   if (aCol=="DOMAIN") aData <- aDomain
   if (aCol=="STUDYID") {aData <- aStudyID}
   if (aCol==aSeqCol) {aData <- aRow}
@@ -156,7 +181,7 @@ getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,a
     aData <- getSENDTestCode(aCol,aTestCD)
   }
   if (aCol==aTestCol)  {aData <- getSENDLastTestCodeName(aCol,aDomain)}
-  if (aCol==aORRESCol) aData <- getOrres(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain)
+  if (aCol==aORRESCol) aData <- getOrres(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime)
   if (aCol==aORRESUCol) {aData <- getOrresUnit(aCol,aDomain,aSex,aTestCD,aSpecies,aStrain)}
   if (aCol==aSTRESCCol) {aData <- getStresc(aCol)}
   if (aCol==aSTRESNCol) {aData <- suppressWarnings(as.numeric(lastOrres))}
@@ -169,7 +194,11 @@ getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,a
     if (aCol==aNOMLBLCol) {aData <- paste("Day",iDay)}
   }
   if (aCol==aSPECCol) aData <- aSpec
-  # return the data
-  # print(paste("               DEBUG aData returned: ",aData))
+  if (aCol==aELTM) aData <- aTime
+  if (aCol==aTPT) aData <- getTPT(aDomain,aSex,aTestCD,aSpec,aSpecies,aTime)
+  if (aCol==aTPTNUM) aData <- getTPTNUM(aDomain,aSex,aTestCD,aSpec,aSpecies,aTime)
+  if (aCol==aTPTREF) aData <- paste("Day",iDay,"Dosing")
+    # return the data
+  printDebug(paste("               aData returned: ",aData))
   aData
 }

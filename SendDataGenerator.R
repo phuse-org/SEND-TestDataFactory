@@ -52,6 +52,40 @@ getMatchColumn <- function(aDomain,aColumn1,aValue1,aColumn2) {
   answer
 }
 
+# get time point from configuration file
+getTPTNUM <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aTime) {
+  aDomainConfig <- getConfig(aDomain)
+  tptnumInd <- str_which(names(aConfig), "TPTNUM")
+  eltmInd <- str_which(names(aConfig), "ELTM")
+  testcdInd <- str_which(names(aConfig), "TESTCD")
+  # get the test code
+  aResult <- aDomainConfig[aDomainConfig$SEX == aSex & 
+                  aDomainConfig[,testcdInd] == aTestCD & 
+                  aDomainConfig[,eltmInd] == aTime,tptnumInd][1]
+  printDebug("Time point num obtained:", aResult)
+  aResult
+}
+
+# get time point from configuration file
+getTPT <- function (aDomain,aSex,aTestCD,aSpec,aSpecies,aTime) {
+  aDomainConfig <- getConfig(aDomain)
+  tptInd <- str_which(names(aConfig), "(TPT)$")
+  eltmInd <- str_which(names(aConfig), "ELTM")
+  testcdInd <- str_which(names(aConfig), "(TESTCD)$")
+  # get the test code
+  aResult <- aDomainConfig[aDomainConfig$SEX == aSex &
+                      aDomainConfig[,testcdInd] == aTestCD & 
+                      aDomainConfig[,eltmInd] == aTime,tptInd][1]
+  printDebug("Time point obtained:", aResult)
+  aResult
+}
+
+# get times from configuration file
+getConfigTimes <- function (aDomain) {
+  # get unique list of elapsed times
+  aTimes <- unique(PCconfig$PCELTM)
+}
+
 #check if data frame has a DY component
 hasDays <- function(aDF,aDomain) {
   aDY <- paste(aDomain,"DY",sep="")
@@ -63,7 +97,7 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
   theColumns <- dfSENDIG[dfSENDIG$Domain==aDomain,]$Column
   theLabels <- dfSENDIG[dfSENDIG$Domain==aDomain,]$Label
   # Creating the data fames
-  print(paste0("Creating the data frames with columns: ",theColumns))
+  printDebug(paste0("Creating the data frames with columns: ",theColumns))
   aDF <<- setNames(data.frame(matrix(ncol = length(theColumns), nrow = 1)),
                      theColumns
   )
@@ -94,15 +128,23 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
     animalsList <- input$animalsPerGroup
   }
   
-  #print(paste("Looping by SEX:",sexList))
+  printDebug(paste("Looping by SEX:",sexList))
   for (aSex in sexList) {
+    printDebug(paste("For this sex:",aSex))
     # now loop on all groups
-    print(paste("Looping by treatment:",treatmentList))
-    for (aTreatment in treatmentList) {
+    printDebug(paste("Looping by treatment:",treatmentList))
+    for (iTreatment in 1:length(treatmentList)) {
+      aTreatment <- treatmentList[iTreatment]
+      printDebug(paste("For this treatment:",aTreatment))
       # now loop on all animals for which we want to create rows
-      print(paste("Looping by animals per group:",animalsList))
-      for (anAnimal in 1:animalsList) {
+      printDebug(paste("Looping by animals per group:",animalsList))
+      for (anAnimalInGroup in 1:animalsList) {
         # if this domain has days, loop over days
+        # create animal number with treament and sex characters
+        anAnimal <- paste0(iTreatment,aSex,anAnimalInGroup)
+        printDebug(paste("For this animal:",anAnimal))
+        # times per day for some domain
+        aTimes <- "Not used"
         if (hasDays(aDF,aDomain)) {
           # FIXME - use study length from configuration or user selection
           startDay <- 1
@@ -120,6 +162,8 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
         if (aDomain=="PP" || aDomain=="PC") {
           startDay <- 1
           endDay <- 1
+          # and read time list from configuration
+          aTimes <- getConfigTimes(aDomain)
         }
         
         # for OM, MA and MI, just 1 day of data, last day of study
@@ -131,26 +175,33 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
         for (iDay in startDay:endDay) {
           # loop over the tests for this domain
           aCodes <- getTestCDs(aDomain, aSex,input$species, input$strain)
-          print(aCodes)
+          printDebug(aCodes)
+          print(paste("For this day:",iDay))
           for(i in 1:nrow(aCodes)) {
             aTestCD <-  as.character(aCodes[i,])
             aSpecs <- getSpecs(aDomain,aSex,aTestCD)
-            # print(paste("For this test code:",aTestCD))
+            print(paste("  For this test code:",aTestCD))
             if (!skipRow(aTestCD,iDay,endDay)) {
               for(iSpec in 1:length(aSpecs)) {
                 skipDataRow <<- FALSE
                 aSpec <- as.character(aSpecs[iSpec])
-                # print(paste(" About to create row animal for",aTestCD, iDay, anAnimal, aTreatment, aSex,aSpec,input$species, input$strain))
-                aRowList <<- createRowAnimal(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,
-                input$studyName,aTestCD,iDay,aSpec,input$species, input$strain , input$SENDVersion)
-                # replace empties with NA
-                # print(paste(" inserting",aRowList))
-                aRowList <<- sub("$^", NA, aRowList)
-                if (!skipDataRow) {
-                  # print("Debug adding row")
-                  aDF[aRow,] <<- aRowList        
-                  aRow <- aRow + 1
-                } # end of skip data row check
+                printDebug(paste("    For this specimen:",aSpec))
+                  for (aTime in aTimes) {
+                    printDebug(paste("    For this time:",aTime))
+                    printDebug(paste(" About to create row animal for",aTestCD, iDay, anAnimal, aTreatment, aSex,aSpec,input$species, input$strain, aTime))
+                    aRowList <<- createRowAnimal(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,
+                    input$studyName,aTestCD,iDay,aSpec,input$species, input$strain , input$SENDVersion,aTime)
+                    # replace empties with NA
+                    aRowList <<- sub("$^", NA, aRowList)
+                    printDebug(paste(" inserting",aRowList))
+                    if (aRow>1) {
+                      printDebug(paste("   after",aDF[aRow-1,]))
+                    }
+                    if (!skipDataRow) {
+                      aDF[aRow,] <<- aRowList        
+                      aRow <- aRow + 1
+                    } # end of skip data row check
+                  } # end of loop on time per day
               } # end of loop on specimen
             } # end of skipRow check
           } # end of test loop
@@ -162,15 +213,15 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
 }
 
 createRowAnimal <- function(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,aStudyID,
-                            aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion) {
+                            aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime) {
  aList <- list() 
- # print(paste("Creating row for:",aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,aSpec,aSpecies,aStrain))
- # print(paste("Getting values for:",labels(aDF)[2][[1]]))
+ printDebug(paste("Creating row for:",aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,aSpec,aSpecies,aStrain))
+ printDebug(paste("Getting values for:",labels(aDF)[2][[1]]))
  # loop on fields in data frame
  for (aCol in labels(aDF)[2][[1]]) {
    # add value to the list of column values, based upon the column name
    columnData <- getColumnData(aCol,aSex,aTreatment,anAnimal,aRow,aDomain,
-                                aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion)
+                                aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime)
    aList <- c(aList, columnData)
  }
  # print(paste("  FIXME values are:",aList))

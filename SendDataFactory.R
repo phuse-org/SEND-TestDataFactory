@@ -110,11 +110,16 @@ if(packageVersion("SASxport") < "1.6.0") {
 # sourcedir works in rstudio
 sourceDir <<- getSrcDirectory(function(dummy) {dummy})
 
+# set debug on or off for more print statements
+debugMode <<- FALSE
+debugMode <<- TRUE
+
 # Source Functions
 # allow to work offline by not using the next line:
 source('https://raw.githubusercontent.com/phuse-org/phuse-scripts/master/contributed/Nonclinical/R/Functions/Functions.R')
 #  Use this next line if not on internet
 #  source(paste(sourceDir, '/Functions.R', sep = ""))
+source(paste(sourceDir, "/SENDTimeResponse.R", sep=""))
 source(paste(sourceDir, "/SENDColumnData.R", sep=""))
 source(paste(sourceDir, "/SendDataGenerator.R", sep=""))
 source(paste(sourceDir, "/SendTrialDomains.R", sep=""))
@@ -128,6 +133,13 @@ convertMenuItem <- function(mi,tabName) {
   mi$children[[1]]$attribs['data-toggle']="tab"
   mi$children[[1]]$attribs['data-value'] = tabName
   mi
+}
+
+# only show these print statements in debug mode
+printDebug <- function(input) {
+  if (debugMode) {
+    print(input)
+  }
 }
 
 # Count rows from datasets to prepare for display

@@ -17,6 +17,12 @@ getEndDate <- function() {
   studyLength <- as.integer(regmatches(aDuration,pattern))
   as.character(as.Date(getStartDate())+studyLength)
 }
+getStudyLength <- function() {
+  # get end date for all animals
+  aDuration <-(TSFromFile[TSFromFile$TSPARMCD=="TRMSAC",]$TSVAL)
+  pattern <- gregexpr('[0-9]+',aDuration)
+  studyLength <- as.integer(regmatches(aDuration,pattern))
+}
 
 getElementDuration <- function(anElement) {
   aDuration <-(teOut[teOut$ETCD==anElement,]$TEDUR[1])
@@ -148,7 +154,7 @@ setDMFile <- function(input) {
 
 setDSFile <- function(input) {
   # create data frame based on structure
-  print(paste("FIXME DS","working on ds"))
+  printDebug(paste("FIXME DS","working on ds"))
   aDomain <- "DS"
 
   theColumns <- dfSENDIG[dfSENDIG$Domain==aDomain,]$Column
@@ -201,8 +207,8 @@ setDSFile <- function(input) {
         aRow <- aRow + 1
     } # end animal loop
     } # end of sex loop
-    print(paste("FIXME DS","Ds so far"))
-    print(head(tOut))
+    printDebug(paste("FIXME DS","Ds so far"))
+    printDebug(head(tOut))
     if (hasTK) {
       # TK is the next set number
       theTKSet <- theSet+1
@@ -339,7 +345,7 @@ setEXFile <- function(input) {
   animalList <-as.character(dmOut$USUBJID)
   aRow <- 1  
   for(animal_i in animalList) {
-    print(animal_i)
+    printDebug(animal_i)
     sex_i <- dmOut[dmOut$USUBJID == animal_i, "SEX"]
     armcd_i <- dmOut[dmOut$USUBJID == animal_i, "ARMCD"]
     dose_level_i <- ifelse(sex_i == "M",
@@ -362,7 +368,7 @@ setEXFile <- function(input) {
       tOut[aRow,]$EXLOT <<- "theLotNumber"
       tOut[aRow,]$EXTRTV <<- TSFromFile[TSFromFile$TSPARMCD == "TRTV", "TSVAL"]
       tOut[aRow,]$EXSTDTC <<- as.character(TSFromFile[TSFromFile$TSPARMCD == "STSTDTC", "TSVAL"])
-      print(tOut[aRow,])
+      printDebug(tOut[aRow,])
       aRow <- aRow + 1
   }
   

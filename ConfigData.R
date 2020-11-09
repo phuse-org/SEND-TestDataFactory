@@ -23,6 +23,9 @@ readConfig <- function(configFile){
   unitInd <- str_detect(configFileColumns, "(STRESU)$")
   factorInd <- str_detect(configFileColumns, "(STRESC)$")
   proportionInd <- str_detect(configFileColumns,"(FREQ)$")
+  eltmInd<- str_detect(configFileColumns,"(ELTM)$")
+  tptInd<- str_detect(configFileColumns,"(TPT)$")
+  tptnumInd<- str_detect(configFileColumns,"(TPTNUM)$")
   
   
   data.frame(
@@ -37,7 +40,10 @@ readConfig <- function(configFile){
     sd = configFile[sdInd],
     unit = configFile[unitInd],
     fact = configFile[factorInd],
-    prop = configFile[proportionInd]
+    prop = configFile[proportionInd],
+    eltm = configFile[eltmInd],
+    tpt = configFile[tptInd],
+    tptnum = configFile[tptnumInd]
   )
 }
 
