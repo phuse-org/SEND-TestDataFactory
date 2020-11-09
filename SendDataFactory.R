@@ -112,7 +112,7 @@ sourceDir <<- getSrcDirectory(function(dummy) {dummy})
 
 # set debug on or off for more print statements
 debugMode <<- FALSE
-debugMode <<- TRUE
+# debugMode <<- TRUE
 
 # Source Functions
 # allow to work offline by not using the next line:
@@ -135,12 +135,6 @@ convertMenuItem <- function(mi,tabName) {
   mi
 }
 
-# only show these print statements in debug mode
-printDebug <- function(input) {
-  if (debugMode) {
-    print(input)
-  }
-}
 
 # Count rows from datasets to prepare for display
 makeListDatasetsCreated <- function(input) {

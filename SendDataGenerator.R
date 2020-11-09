@@ -55,28 +55,31 @@ getMatchColumn <- function(aDomain,aColumn1,aValue1,aColumn2) {
 # get time point from configuration file
 getTPTNUM <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aTime) {
   aDomainConfig <- getConfig(aDomain)
-  tptnumInd <- str_which(names(aConfig), "TPTNUM")
-  eltmInd <- str_which(names(aConfig), "ELTM")
-  testcdInd <- str_which(names(aConfig), "TESTCD")
+  tptnumInd <- str_which(names(aDomainConfig), "TPTNUM")
+  eltmInd <- str_which(names(aDomainConfig), "ELTM")
+  testcdInd <- str_which(names(aDomainConfig), "TESTCD")
   # get the test code
   aResult <- aDomainConfig[aDomainConfig$SEX == aSex & 
                   aDomainConfig[,testcdInd] == aTestCD & 
                   aDomainConfig[,eltmInd] == aTime,tptnumInd][1]
-  printDebug("Time point num obtained:", aResult)
+  printDebug(paste("Time point num obtained:", aResult))
   aResult
 }
 
 # get time point from configuration file
 getTPT <- function (aDomain,aSex,aTestCD,aSpec,aSpecies,aTime) {
+  printDebug("To calculate: Time point obtained")
   aDomainConfig <- getConfig(aDomain)
-  tptInd <- str_which(names(aConfig), "(TPT)$")
-  eltmInd <- str_which(names(aConfig), "ELTM")
-  testcdInd <- str_which(names(aConfig), "(TESTCD)$")
+  tptInd <- str_which(names(aDomainConfig), "(TPT)$")
+  eltmInd <- str_which(names(aDomainConfig), "ELTM")
+  testcdInd <- str_which(names(aDomainConfig), "(TESTCD)$")
+  printDebug(paste("Calculating:",tptInd,eltmInd,testcdInd))
+  printDebug(aDomainConfig)
   # get the test code
   aResult <- aDomainConfig[aDomainConfig$SEX == aSex &
                       aDomainConfig[,testcdInd] == aTestCD & 
                       aDomainConfig[,eltmInd] == aTime,tptInd][1]
-  printDebug("Time point obtained:", aResult)
+  printDebug(paste("Time point obtained:", aResult))
   aResult
 }
 

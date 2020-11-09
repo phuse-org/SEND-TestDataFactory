@@ -1,5 +1,12 @@
 # These functions work together with the SendDataFactory
 
+# only show these print statements in debug mode
+printDebug <- function(input) {
+  if (debugMode) {
+    print(input)
+  }
+}
+
 
 getTimeResponse <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay){
 ## Time response difference returned based upon domain
