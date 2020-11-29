@@ -34,19 +34,7 @@
 # [Bob] Move checkCore to SENDIGReader so it loads the function while loading other scripts
 # [Bob] Dislpay all created domains
 
-# Next steps:
-# [???] Need configuration file for OM domain
-# [???]   Configuration files need units 
-# [Bob] Animals per group should be a single selection
-# [Kevin] Update so that no errors occur in main window on initial run
-# [Kevin] Update measurement choices to cover all possible 3.1 domains
-# [Kevin] Configuration files for ranges of numeric fields
-# Output of all domains selected
-#   [Eli] Animal demographics and disposition 
-#   [Bob] In-life domains - adjust to length of the study
-#   [Bob] Post mortem domains 
-# Implementation for SEND 3.1 first, then DART, SEND 3.0
-# [Bob] Test output against validator
+# Issues moved to github issue list
 #     
 #
 #
@@ -111,8 +99,8 @@ if(packageVersion("SASxport") < "1.6.0") {
 sourceDir <<- getSrcDirectory(function(dummy) {dummy})
 
 # set debug on or off for more print statements
-debugMode <<- FALSE
-# debugMode <<- TRUE
+#debugMode <<- FALSE
+debugMode <<- TRUE
 
 # Source Functions
 # allow to work offline by not using the next line:
@@ -272,7 +260,7 @@ if (file.exists('~/passwordGitHub.R')) {
 }
 
 # read configurations to be ready to display them at any time
-configList <- list("BG","BW","CL","LB","MA","MI","PC","PP")
+configList <- list("BG","BW","CL","LB","MA","MI","PC","PP","OM")
 for (domain in configList) {
   getConfig(domain);
 }
@@ -371,7 +359,7 @@ server <- function(input, output, session) {
   output$OutputCategories <- renderUI({
     testDomains <- c("BW", "CL", "FW", "LB", "OM", "MA", "MI", "EG","PC","PP")
     testCategories <- c("Body weights","Clinical Observations","Food consumption (not ready)","Lab Tests",
-                        "Organ weights (not ready)","Macropathology","Micropathology","ECG (not ready)",
+                        "Organ weights","Macropathology","Micropathology","ECG (not ready)",
                         "Pharmacokinetic Concentrations","Pharmacokinetic Parameters")
     checkboxGroupInput('testCategories','Data domains to create:',choiceValues=testDomains,choiceNames=testCategories,selected=testCategories)
   })
@@ -433,6 +421,10 @@ server <- function(input, output, session) {
     maOut
   })
 
+  output$showOM <- renderTable({
+    omOut
+  })
+  
   output$showPC <- renderTable({
     pcOut
   })
@@ -475,6 +467,10 @@ server <- function(input, output, session) {
   })
   output$showPPConfig <- renderTable({
     PPconfig
+  })
+  output$showOMConfig <- renderTable({
+    OMconfig[str_to_upper(str_trim(OMconfig$SPECIES)) == input$species &
+               str_to_upper(str_trim(OMconfig$STRAIN)) == input$strain, ]
   })
   
       output$TSTable <- renderRHandsontable({
@@ -590,6 +586,14 @@ server <- function(input, output, session) {
       removeTab(inputId = "navDatasets",target = "LB")
       insertTab(inputId = "navDatasets",
                 tabPanel("LB",tableOutput("showLB")),
+                position = 'after',
+                target = "TS"
+      )
+    }
+    if (exists("omOut")) {
+      removeTab(inputId = "navDatasets",target = "OM")
+      insertTab(inputId = "navDatasets",
+                tabPanel("OM",tableOutput("showOM")),
                 position = 'after',
                 target = "TS"
       )
@@ -749,6 +753,7 @@ ui <- dashboardPage(
                          tabPanel("Lab Results",tableOutput("showLBConfig")),
                          tabPanel("Macroscopic Findings",tableOutput("showMAConfig")),
                          tabPanel("Microscopic Findings",tableOutput("showMIConfig")),
+                         tabPanel("Organ Measurements",tableOutput("showOMConfig")),
                          tabPanel("Pharmacokinetic Concentrations",tableOutput("showPCConfig")),
                          tabPanel("Pharmacokinetic Parameters",tableOutput("showPPConfig"))
               )

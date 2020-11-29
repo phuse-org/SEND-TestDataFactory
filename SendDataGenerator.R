@@ -14,7 +14,7 @@ skipRow <- function(aTestCD,iDay,endDay) {
 
 
 # Get specimins for some domains
-getSpecs <- function(aDomain,aSex,aTestCD) {
+getSpecs <- function(aDomain,aSex,aTestCD,aSpecies,aStrain) {
   switch(aDomain,
          "MI" = {aConfig <- getConfig("MI")},
          "MA" = {aConfig <- getConfig("MA")},
@@ -28,10 +28,20 @@ getSpecs <- function(aDomain,aSex,aTestCD) {
     # read from configuration file
     ## Pull proportions for this sex,testcd
     testcd_ind <- str_which(names(aConfig), "TESTCD")
-    testConfig <- aConfig[aSex==aConfig$SEX &
-                                  aTestCD==aConfig[,testcd_ind],]
+    strain_ind <- str_which(names(aConfig), "STRAIN")
+    species_ind <- str_which(names(aConfig), "SPECIES")
+    # on some, go to species and strain as well
+    if (identical(strain_ind, integer(0))) {
+      testConfig <- aConfig[aSex==aConfig$SEX &
+                                    aTestCD==aConfig[,testcd_ind],]
+    } else {
+      testConfig <- aConfig[aSex==aConfig$SEX &
+                                    aTestCD==aConfig[,testcd_ind] &
+                                    aSpecies==aConfig[,species_ind] &
+                                    aStrain==aConfig[,strain_ind],]
+    }
     spec_ind <- str_which(names(aConfig), paste0(aDomain,"SPEC"))
-    theSpecs <- testConfig[,spec_ind]
+    theSpecs <- unique(testConfig[,spec_ind])
     aList <- as.list(theSpecs)
   } else {
     # print("No specimen list")
@@ -58,11 +68,16 @@ getTPTNUM <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aTime) {
   tptnumInd <- str_which(names(aDomainConfig), "TPTNUM")
   eltmInd <- str_which(names(aDomainConfig), "ELTM")
   testcdInd <- str_which(names(aDomainConfig), "TESTCD")
-  # get the test code
-  aResult <- aDomainConfig[aDomainConfig$SEX == aSex & 
+  if (identical(tptnumInd, integer(0))) {
+    # if no timepoint
+    aResult <- ""
+  }  else {
+    # get the test code
+    aResult <- aDomainConfig[aDomainConfig$SEX == aSex & 
                   aDomainConfig[,testcdInd] == aTestCD & 
                   aDomainConfig[,eltmInd] == aTime,tptnumInd][1]
-  printDebug(paste("Time point num obtained:", aResult))
+    printDebug(paste("Time point num obtained:", aResult))
+  }
   aResult
 }
 
@@ -73,13 +88,19 @@ getTPT <- function (aDomain,aSex,aTestCD,aSpec,aSpecies,aTime) {
   tptInd <- str_which(names(aDomainConfig), "(TPT)$")
   eltmInd <- str_which(names(aDomainConfig), "ELTM")
   testcdInd <- str_which(names(aDomainConfig), "(TESTCD)$")
-  printDebug(paste("Calculating:",tptInd,eltmInd,testcdInd))
-  printDebug(aDomainConfig)
-  # get the test code
-  aResult <- aDomainConfig[aDomainConfig$SEX == aSex &
-                      aDomainConfig[,testcdInd] == aTestCD & 
-                      aDomainConfig[,eltmInd] == aTime,tptInd][1]
-  printDebug(paste("Time point obtained:", aResult))
+  if (identical(tptInd, integer(0))) {
+     # if no timepoint
+    aResult <- ""
+  } else {
+    printDebug(paste("Calculating:",tptInd,eltmInd,testcdInd))
+    printDebug(aDomainConfig)
+    # get the test code
+    aResult <- aDomainConfig[aDomainConfig$SEX == aSex &
+                               aDomainConfig[,testcdInd] == aTestCD & 
+                               aDomainConfig[,eltmInd] == aTime,tptInd][1]
+    printDebug(paste("Time point obtained:", aResult))
+    
+  }
   aResult
 }
 
@@ -182,7 +203,7 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
           print(paste("For this day:",iDay))
           for(i in 1:nrow(aCodes)) {
             aTestCD <-  as.character(aCodes[i,])
-            aSpecs <- getSpecs(aDomain,aSex,aTestCD)
+            aSpecs <- getSpecs(aDomain,aSex,aTestCD,input$species, input$strain)
             print(paste("  For this test code:",aTestCD))
             if (!skipRow(aTestCD,iDay,endDay)) {
               for(iSpec in 1:length(aSpecs)) {

@@ -4,7 +4,7 @@
 getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime){
   aDomainConfig <- getConfig(aDomain)
   ## If Domain is numeric
-  if(aDomain %in% c("BG", "BW", "EG", "FW", "LB", "PC", "PP", "VS")){
+  if(aDomain %in% c("BG", "BW", "EG", "FW", "LB", "PC", "PP", "VS","OM")){
     ## If config found
     if(exists("aDomainConfig") && !is.null(aDomainConfig)) {
       printDebug(paste(" Debug 1 Determining mean: ",aDomain," sex: ",aSex," testcd: ",aTestCD))
@@ -12,6 +12,7 @@ getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime){
       mean_ind <- str_which(names(aDomainConfig), "STRESM")
       sd_ind <- str_which(names(aDomainConfig), "STRESSD")
       eltm_ind <- str_which(names(aDomainConfig), "ELTM")
+      spec_ind <- str_which(names(aDomainConfig), paste0(aDomain,"SPEC"))
       aValueMean <- aDomainConfig[aDomainConfig$SEX == aSex &
                                     aDomainConfig[,testcd_ind] == aTestCD,
                                   mean_ind]
@@ -19,7 +20,7 @@ getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime){
                                     aDomainConfig[,testcd_ind] == aTestCD,
                                   sd_ind]
       # for some domains, check as well to species and strain level
-      if(aDomain %in% c("BG", "BW", "EG", "FW", "LB","OM","VS")){
+      if(aDomain %in% c("BG", "BW", "EG", "FW", "LB","VS")){
         aValueMean <- aDomainConfig[aDomainConfig$SEX == aSex & aDomainConfig$SPECIES == aSpecies & aDomainConfig$STRAIN == aStrain &
                                     aDomainConfig[,testcd_ind] == aTestCD,
                                   mean_ind]
@@ -29,6 +30,20 @@ getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime){
         aValueSD <- aDomainConfig[aDomainConfig$SEX == aSex & aDomainConfig$SPECIES == aSpecies & aDomainConfig$STRAIN == aStrain &
                                   aDomainConfig[,testcd_ind] == aTestCD,
                                 sd_ind]
+      }
+      # for some domains, check as well to species, strain level and specimen
+      if(aDomain %in% c("OM")){
+        aValueMean <- aDomainConfig[aDomainConfig$SEX == aSex & aDomainConfig$SPECIES == aSpecies & aDomainConfig$STRAIN == aStrain &
+                                      aDomainConfig[,testcd_ind] == aTestCD &
+                                    aDomainConfig[,spec_ind] == aSpec,
+                                    mean_ind]
+        if (is.null(aValueMean)) {
+          stop(paste("Unable to find configurated mean value for this species",aSpecies,"strain",aStrain,"and specimen",aSpec))
+        }
+        aValueSD <- aDomainConfig[aDomainConfig$SEX == aSex & aDomainConfig$SPECIES == aSpecies & aDomainConfig$STRAIN == aStrain &
+                                    aDomainConfig[,testcd_ind] == aTestCD &
+                                    aDomainConfig[,spec_ind] == aSpec,
+                                    sd_ind]
       }
       # for some domains, check as well to the time level
       if(aDomain %in% c("PC")){
@@ -46,7 +61,24 @@ getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime){
                                     aDomainConfig[,eltm_ind] == aTime,
                                   sd_ind]
       }
-      aValue <- round(rnorm(1, aValueMean, aValueSD), digits=2)
+      # if got more than one, average it
+      printDebug(paste("  In getORRES mean is",aValueMean,"and SD",aValueSD))
+      aValueMean <- mean(aValueMean)
+      aValueSD <- mean(aValueSD)
+      printDebug(paste("  In getORRES, mean of these mean is",aValueMean,"and SD",aValueSD))
+      aValue <- rnorm(1, aValueMean, aValueSD)
+      printDebug(paste("  Resultant value",aValue))
+      # if this results in negative, adjust up
+      if (aValue <= 0) {
+        aValue <- aValue + aValueSD
+      }
+      printDebug(paste("  Adjusted",aValue))
+      # OM needs more units
+      if (aDomain=="OM") {
+        aValue <- round(aValue, digits=4)
+      } else {
+        aValue <- round(aValue, digits=2)
+      }
       # now increase or decrease this based upon synthetic time response
       aTimeResponse <- getTimeResponse(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay)
       aValue <- aValue + aTimeResponse
@@ -129,8 +161,8 @@ getOrresUnit <- function(aCol,aDomain,aSex,aTestCD,aSpecies,aStrain){
     aValue <- "Not yet set"
     # for some domains, check as well to species and strain level
     if(aDomain %in% c("BG", "BW", "EG", "FW", "LB","OM","VS")){
-      aValue1 <- aDomainConfig[aDomainConfig$SEX == aSex & aDomainConfig$SPECIES == aSpecies & aDomainConfig$STRAIN == aStrain &
-                                    aDomainConfig[,testcd_ind] == aTestCD,unitInd]
+      aValue1 <- unique(aDomainConfig[aDomainConfig$SEX == aSex & aDomainConfig$SPECIES == aSpecies & aDomainConfig$STRAIN == aStrain &
+                                    aDomainConfig[,testcd_ind] == aTestCD,unitInd])
     } else {
       aValue1 <- unique(aDomainConfig[aDomainConfig$SEX == aSex & aDomainConfig[,testcd_ind] == aTestCD,unitInd])
     }
