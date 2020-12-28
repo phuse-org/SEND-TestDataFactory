@@ -99,8 +99,12 @@ if(packageVersion("SASxport") < "1.6.0") {
 sourceDir <<- getSrcDirectory(function(dummy) {dummy})
 
 # set debug on or off for more print statements
-#debugMode <<- FALSE
-debugMode <<- TRUE
+debugMode <<- FALSE
+#debugMode <<- TRUE
+lastColumnQueriedCD <<- ""
+lastColumnQueried <<- ""
+lastTestNameResult <<- ""
+lastTestCodeLookup <<- ""
 
 # Source Functions
 # allow to work offline by not using the next line:
@@ -221,12 +225,13 @@ setOutputData <- function(input) {
     # Set length for character fields
     SASformat(studyData$DOMAIN) <-"$2."	
     # place this dataset into a list with a name
-    aList = list(studyData)
+    aList <- list(studyData)
     # name it
     names(aList)[1]<-domain
     # and label it
     attr(aList,"label") <- domainLabel
     # write out dataframe
+    aTime <- proc.time()
     write.xport(
       list=aList,
       file = tempFile,
@@ -237,6 +242,8 @@ setOutputData <- function(input) {
       formats=NULL,
       autogen.formats=TRUE
     )
+    printDebug(" Written to export file")
+    printDebug(proc.time()-aTime)
   }
 
 
@@ -512,6 +519,7 @@ server <- function(input, output, session) {
           # append name with domain to make up the individual files that go into the zip
           print(paste('Preparing: ',
                       domainDFsMade$Domain[aRow],".xpt",sep=""))
+          aTimer <- proc.time()
           filePart <- paste(dirname(file),.Platform$file.sep,tolower(domainDFsMade$Domain[aRow]),".xpt",sep="")
           # pass the data frame itself instead of its name as a string
           aDF <- get(domainDFsMade$Dataframe[aRow])
@@ -521,10 +529,13 @@ server <- function(input, output, session) {
           domainDFsMade$Domain[aRow],".xpt",sep=""))
           print(paste('File prepared: ',
                       domainDFsMade$Domain[aRow],".xpt",sep=""))
+          print(proc.time() - aTimer)
         }
       # combine into zip file
       setProgress(value=1,message=paste('Combining to a zip file'))
+      aTimer <- proc.time()
       zip(file,unlist(fileList, use.names=FALSE),flags = '-r9Xj')
+      print(proc.time() - aTimer)
       zip
       })
     }

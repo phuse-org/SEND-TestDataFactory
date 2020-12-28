@@ -31,7 +31,7 @@ getTimeResponse <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay){
       studyLength <- getStudyLength()
       # print(paste("Debug 2 Study length is:", studyLength,"so add to this BW",aValue))
       aValue <- round(aValue * iDay/studyLength,digits=2)
-      # print(paste("Debug 3 Study length is:", studyLength,"so add to this BW",aValue))
+      printDebug(paste("Debug 3 Study length is:", studyLength,"so add to this BW",aValue))
     }  # check on existance of domain configuration
   }
   # return the difference to add to the result so that it increases or decreases

@@ -12,6 +12,53 @@ skipRow <- function(aTestCD,iDay,endDay) {
 }
 #
 
+# Sort the domain and resequence
+sortDomain <- function(aDomain) {
+  switch(aDomain,
+         "BW" = {
+           bwOut <<- arrange(bwOut,STUDYID,USUBJID,BWTESTCD,BWDY)
+           bwOut$BWSEQ <<- 1:nrow(bwOut) 
+         },
+         "CL" = {
+           clOut <<- arrange(clOut,STUDYID,USUBJID,CLTESTCD,CLDY)
+           clOut$CLSEQ <<- 1:nrow(clOut) 
+         },
+         "LB" = {
+           lbOut <<- arrange(lbOut,STUDYID,USUBJID,LBTESTCD,LBDY)
+           lbOut$LBSEQ <<- 1:nrow(lbOut) 
+         },
+         "FW" = {
+           fwOut <<- arrange(fwOut,STUDYID,USUBJID,FWTESTCD,FWDY)
+           fwOut$FWSEQ <<- 1:nrow(fwOut) 
+         },
+         "EG" = {
+           egOut <<- arrange(egOut,STUDYID,USUBJID,EGTESTCD,EGDY)
+           egOut$EGSEQ <<- 1:nrow(egOut) 
+         },
+         "MA" = {
+           maOut <<- arrange(maOut,STUDYID,USUBJID,MASPEC,MATESTCD,MADY)
+           maOut$MASEQ <<- 1:nrow(maOut) 
+         },
+         "MI" = {
+           printDebug(paste(" In sortDomain about to sort"))  
+           miOut <<- arrange(miOut,STUDYID,USUBJID,MISPEC,MITESTCD,MIDY)
+           printDebug(paste(" In sortDomain sorted, now renumbering"))  
+           miOut$MISEQ <<- 1:nrow(miOut) 
+         },
+         "OM" = {
+           omOut <<- arrange(omOut,STUDYID,USUBJID,OMSPEC,OMTESTCD,OMDY)
+           omOut$OMSEQ <<- 1:nrow(omOut) 
+          },
+         "PC" = {
+           pcOut <<- arrange(pcOut,STUDYID,USUBJID,PCTESTCD,PCDY,PCTPTNUM)
+           pcOut$PCSEQ <<- 1:nrow(pcOut) 
+          },
+         "PP" = { 
+           ppOut <<- arrange(ppOut,STUDYID,USUBJID,PPTESTCD)
+           ppOut$PPSEQ <<- 1:nrow(ppOut) 
+         } 
+  )
+}
 
 # Get specimins for some domains
 getSpecs <- function(aDomain,aSex,aTestCD,aSpecies,aStrain) {
@@ -154,62 +201,62 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
   
   printDebug(paste("Looping by SEX:",sexList))
   for (aSex in sexList) {
-    printDebug(paste("For this sex:",aSex))
-    # now loop on all groups
-    printDebug(paste("Looping by treatment:",treatmentList))
-    for (iTreatment in 1:length(treatmentList)) {
-      aTreatment <- treatmentList[iTreatment]
-      printDebug(paste("For this treatment:",aTreatment))
-      # now loop on all animals for which we want to create rows
-      printDebug(paste("Looping by animals per group:",animalsList))
-      for (anAnimalInGroup in 1:animalsList) {
-        # if this domain has days, loop over days
-        # create animal number with treament and sex characters
-        anAnimal <- paste0(iTreatment,aSex,anAnimalInGroup)
-        printDebug(paste("For this animal:",anAnimal))
-        # times per day for some domain
-        aTimes <- "Not used"
-        if (hasDays(aDF,aDomain)) {
-          # FIXME - use study length from configuration or user selection
-          startDay <- 1
-          endDay <- 10
-        } else {
-          startDay <- 1
-          endDay <- 1  
-        }
-        # for Lab, just 1 day of data, last day of study
-        if (aDomain=="LB") {
-          startDay <- 10
-          endDay <- 10
-        }
-        # for PC and PP, just 1 day of data, day 1
-        if (aDomain=="PP" || aDomain=="PC") {
-          startDay <- 1
-          endDay <- 1
-          # and read time list from configuration
-          aTimes <- getConfigTimes(aDomain)
-        }
-        
-        # for OM, MA and MI, just 1 day of data, last day of study
-        if (aDomain=="MA" || aDomain=="MI" || aDomain=="OM") {
-          startDay <- 10
-          endDay <- 10
-        }
-        # deterimine specimens to use
-        for (iDay in startDay:endDay) {
-          # loop over the tests for this domain
-          aCodes <- getTestCDs(aDomain, aSex,input$species, input$strain)
-          printDebug(aCodes)
-          print(paste("For this day:",iDay))
-          for(i in 1:nrow(aCodes)) {
-            aTestCD <-  as.character(aCodes[i,])
-            aSpecs <- getSpecs(aDomain,aSex,aTestCD,input$species, input$strain)
-            print(paste("  For this test code:",aTestCD))
-            if (!skipRow(aTestCD,iDay,endDay)) {
-              for(iSpec in 1:length(aSpecs)) {
-                skipDataRow <<- FALSE
-                aSpec <- as.character(aSpecs[iSpec])
-                printDebug(paste("    For this specimen:",aSpec))
+  printDebug(paste("For this sex:",aSex))
+  # loop over the tests for this domain
+  aCodes <- getTestCDs(aDomain, aSex,input$species, input$strain)
+  printDebug(aCodes)
+  for(i in 1:nrow(aCodes)) {
+    aTestCD <-  as.character(aCodes[i,])
+    aSpecs <- getSpecs(aDomain,aSex,aTestCD,input$species, input$strain)
+    printDebug(paste("  For this test code:",aTestCD))
+    if (!skipRow(aTestCD,iDay,endDay)) {
+      for(iSpec in 1:length(aSpecs)) {
+        skipDataRow <<- FALSE
+        aSpec <- as.character(aSpecs[iSpec])
+        printDebug(paste("    For this specimen:",aSpec))
+             # now loop on all groups
+          printDebug(paste("Looping by treatment:",treatmentList))
+          for (iTreatment in 1:length(treatmentList)) {
+            aTreatment <- treatmentList[iTreatment]
+            printDebug(paste("For this treatment:",aTreatment))
+            # now loop on all animals for which we want to create rows
+            printDebug(paste("Looping by animals per group:",animalsList))
+            for (anAnimalInGroup in 1:animalsList) {
+              # if this domain has days, loop over days
+              # create animal number with treament and sex characters
+              anAnimal <- paste0(iTreatment,aSex,anAnimalInGroup)
+              printDebug(paste("For this animal:",anAnimal))
+              # times per day for some domain
+              aTimes <- "Not used"
+              if (hasDays(aDF,aDomain)) {
+                # FIXME - use study length from configuration or user selection
+                startDay <- 1
+                endDay <- 10
+              } else {
+                startDay <- 1
+                endDay <- 1  
+              }
+              # for Lab, just 1 day of data, last day of study
+              if (aDomain=="LB") {
+                startDay <- 10
+                endDay <- 10
+              }
+              # for PC and PP, just 1 day of data, day 1
+              if (aDomain=="PP" || aDomain=="PC") {
+                startDay <- 1
+                endDay <- 1
+                # and read time list from configuration
+                aTimes <- getConfigTimes(aDomain)
+              }
+              
+              # for OM, MA and MI, just 1 day of data, last day of study
+              if (aDomain=="MA" || aDomain=="MI" || aDomain=="OM") {
+                startDay <- 10
+                endDay <- 10
+              }
+              # loop over day
+              for (iDay in startDay:endDay) {
+                printDebug(paste("For this day:",iDay))
                   for (aTime in aTimes) {
                     printDebug(paste("    For this time:",aTime))
                     printDebug(paste(" About to create row animal for",aTestCD, iDay, anAnimal, aTreatment, aSex,aSpec,input$species, input$strain, aTime))
@@ -226,31 +273,34 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
                       aRow <- aRow + 1
                     } # end of skip data row check
                   } # end of loop on time per day
-              } # end of loop on specimen
-            } # end of skipRow check
-          } # end of test loop
-        } # end of day loop
-      } # end of animal loop
-    } # end of treament loop
+              } # end of day loop
+            } # end of animal loop
+          } # end of treament loop
+      } # end of loop on specimen
+    } # end of skipRow check
+   } # end of test loop
   } # end of sex loop
   aDF
 }
 
 createRowAnimal <- function(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,aStudyID,
                             aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime) {
- aList <- list() 
+ # create to hold the row
+ aList <- vector(mode = "list", length = 100)
  printDebug(paste("Creating row for:",aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,aSpec,aSpecies,aStrain))
  printDebug(paste("Getting values for:",labels(aDF)[2][[1]]))
  # loop on fields in data frame
+ iCol <- 1
  for (aCol in labels(aDF)[2][[1]]) {
    # add value to the list of column values, based upon the column name
    columnData <- getColumnData(aCol,aSex,aTreatment,anAnimal,aRow,aDomain,
                                 aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime)
-   aList <- c(aList, columnData)
+   aList[[iCol]] <- columnData
+   iCol <- iCol + 1
  }
- # print(paste("  FIXME values are:",aList))
+ # truncate to correct size
  # return the list of fields
- aList
+ aList[1:iCol-1]
 }
 
 setAnimalDataFiles <- function(input) {
@@ -261,6 +311,8 @@ setAnimalDataFiles <- function(input) {
     # Loop on num domains
     index <- 0
     for (aDomain in DomainsList) {
+      # timer set
+      aTimer <- proc.time()
       index <- index + 1
       percentOfList <- index/length(DomainsList)
       setProgress(value=percentOfList,message=paste('Producing dataset: ',aDomain))
@@ -268,8 +320,15 @@ setAnimalDataFiles <- function(input) {
       aDescription <- paste(aDomain,"domain") #FIXME - read description from SENDIG
       aDFReturned <<- createAnimalDataDomain(input,aDomain,aDescription,aDFName)
       aDFReturned <<- aDFReturned[, checkCore(aDFReturned)]
+      aDFReturned <<- setSENDNumeric(aDFReturned)
       # now reset the name of this dataframe to keep it
       assign(aDFName, aDFReturned, envir=.GlobalEnv)
       addToSet(aDomain,aDescription,aDFName)
+      # sort to get a desired output order
+      sortDomain(aDomain)
+      # showing timer results
+      print(paste("Time to create",aDomain," is:"))
+      print(proc.time() - aTimer)
+      
     }
 }

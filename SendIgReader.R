@@ -44,6 +44,21 @@ checkCore <- function(dataset) {
   !(isPerm & blankCol)
 }
 
+# Reset within the dataframe as numeric columns that should be numeric
+setSENDNumeric <- function(dataset) {
+  domain_i <- unique(dataset$DOMAIN)
+  numerics <- dfSENDIG[dfSENDIG$Domain == domain_i & dfSENDIG$Type=="Num", "Column"]
+  numerics <- intersect(numerics,names(dataset))
+  printDebug(paste(" In setSENDNumeric set numeric for these variables",numerics))  
+  if (length(numerics)>1) {
+    dataset[numerics] <- suppressWarnings(sapply(dataset[numerics],as.numeric))    
+  } else {
+    dataset[numerics] <- as.numeric(dataset[[numerics]])
+    printDebug(paste(" In setSENDNumeric",class(dataset[[numerics]]))) 
+  }
+  dataset
+}
+
 
 isDomainStart <- function(aLine) {
   # Fine the description start

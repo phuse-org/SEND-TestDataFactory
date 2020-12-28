@@ -147,29 +147,58 @@ getCodeList <- function(aCol){
 # get a test code selection
 getSENDTestCode <- function(aCol,aTestCD) {
   # use test code passed in  
-  nameList <- getCodeList(aCol)
+  # if same column as last call, no need to look up namelist again
+  if (lastColumnQueriedCD!=aCol) {
+    nameList <- getCodeList(aCol)
+  } else {
+    nameList <- lastNameListCD
+    printDebug(paste("in getSENDLastTestCode, using last namelist again",aCol,lastNameListCD))
+  }
   if (!is.null(nameList)&& nchar(nameList)>0) {
+    # retain last test code so as to match next request for test code name
     lastTestCode <<- CTSearchOnShortName(nameList,aTestCD)
   } else {
     # for some domains, this must come from a configuration file
     aValue <- aTestCD
     lastTestCode <<- aTestCD
   }
+  # retain last column,namelist used
+  lastColumnQueriedCD <<- aCol
+  lastNameListCD <<- nameList
   # pass back same set code
   as.character(aTestCD)
 }
 
 getSENDLastTestCodeName <- function(aCol,aDomain) {
   # Retrieve from terminology, the test name matching the last test code
-  nameList <- getCodeList(aCol)
-  if (!is.null(nameList)&& nchar(nameList)>0) {
-    aValue <- CTSearchOnCode(nameList,lastTestCode)
-    # print(paste("Last test code is ",lastTestCode,aValue))
+  # if this test name was already lookedup, just use it again
+  if (lastTestCodeLookup==lastTestCode) {
+    aValue <- lastTestNameResult
+    printDebug(paste("in getSENDLastTestCodeName , using last lookup again",aCol,lastTestCode))
   } else {
-    # some domains, this must come from a configuration file
-    # print(paste("  Reading test name from code",aDomain,lastTestCode,sep=":"))
-    aValue <- getMatchColumn(aDomain,paste0(aDomain,"TESTCD"),lastTestCode,paste0(aDomain,"TEST"))
-  }
+    # if same column as last call, no need to look up namelist again
+    if (lastColumnQueried!=aCol) {
+      nameList <- getCodeList(aCol)
+    } else {
+      printDebug(paste("in getSENDLastTestCodeName , using last namelist again",aCol,lastNameList))
+      nameList <- lastNameList
+    }
+
+    if (!is.null(nameList)&& nchar(nameList)>0) {
+      aValue <- CTSearchOnCode(nameList,lastTestCode)
+      # print(paste("Last test code is ",lastTestCode,aValue))
+    } else {
+      # some domains, this must come from a configuration file
+      # print(paste("  Reading test name from code",aDomain,lastTestCode,sep=":"))
+      aValue <- getMatchColumn(aDomain,paste0(aDomain,"TESTCD"),lastTestCode,paste0(aDomain,"TEST"))
+    }
+    # retain last column,namelist used
+    lastColumnQueried <<- aCol
+    lastNameList <<- nameList
+    # retain last found name, to use again is same code number as last time
+    lastTestCodeLookup <<- lastTestCode
+    lastTestNameResult <<- aValue
+  } # end of check on using same value as last time
   aValue
 }
 

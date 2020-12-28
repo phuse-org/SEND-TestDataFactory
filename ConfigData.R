@@ -57,6 +57,10 @@ getConfig <- function(domain) {
       dfList = read.csv(paste0(sourceDir,"/configs/", domain, "config.csv"), stringsAsFactors = FALSE)
       dfRead = readConfig(dfList)
       assign(paste0(domain,"config"),dfRead,envir = .GlobalEnv)
+      # lab domain has duplicates based just on units, need to remove these
+      if (domain=="LB"){
+        LBconfig <<- LBconfig %>% distinct(LBCAT, LBTESTCD, SPECIES,STRAIN,SEX,.keep_all = TRUE)
+      }
     } else {
       warning(paste0("Config Not Found in ", paste0("configs/", 
                                                     domain, "config.csv")))

@@ -1,5 +1,20 @@
 # These functions work together with the SendDataFactory
 
+sameConfig  <- function(aSex,aTestCD,aSpec,aSpecies,aStrain) {
+  if (exists("lastSetTestConfig")) {
+    # check if the same one
+    compareTestConfigSettings <<- paste(aSex,aTestCD,aSpec,aSpecies,aStrain,sep=";;;")
+    if (lastSetTestConfigSettings==compareTestConfigSettings) {
+      answer <- TRUE
+      printDebug(paste("Matches same settings",compareTestConfigSettings))
+    } else {
+      answer <- FALSE
+    }
+  } else {
+    answer <- FALSE
+  }
+  answer
+}
 
 getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime){
   aDomainConfig <- getConfig(aDomain)
@@ -98,26 +113,33 @@ getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime){
       prop_ind <- str_which(names(aDomainConfig), "(FREQ)$")
       spec_ind <- str_which(names(aDomainConfig), paste0(aDomain,"SPEC"))
       
-      ## Pull proportions for this sex,testcd
-      # check if config includes spec
-      if (identical(spec_ind, integer(0))) {
-        testConfig <- aDomainConfig[aSex==aDomainConfig$SEX &
-                                      aTestCD==aDomainConfig[,testcd_ind],]
+      if (sameConfig(aSex,aTestCD,aSpec,aSpecies,aStrain)) {
+        testConfig <- lastSetTestConfig
       } else {
-        testConfig <- aDomainConfig[aSex==aDomainConfig$SEX &
+      
+        ## Pull proportions for this sex,testcd
+        # check if config includes spec
+        if (identical(spec_ind, integer(0))) {
+          testConfig <- aDomainConfig[aSex==aDomainConfig$SEX &
+                                      aTestCD==aDomainConfig[,testcd_ind],]
+        } else {
+          testConfig <- aDomainConfig[aSex==aDomainConfig$SEX &
                                       aTestCD==aDomainConfig[,testcd_ind] &
                                       aSpec==aDomainConfig[,spec_ind],]
-      }
-      # for some domains, check as well to species and strain level
-      if(aDomain %in% c("MA", "MI", "CL")){
-        if (identical(spec_ind, integer(0))) {
-          testConfig <- aDomainConfig[aSex==aDomainConfig$SEX & aDomainConfig$SPECIES == aSpecies & aDomainConfig$STRAIN == aStrain &
+        }
+        # for some domains, check as well to species and strain level
+        if(aDomain %in% c("MA", "MI", "CL")){
+          if (identical(spec_ind, integer(0))) {
+            testConfig <- aDomainConfig[aSex==aDomainConfig$SEX & aDomainConfig$SPECIES == aSpecies & aDomainConfig$STRAIN == aStrain &
                                         aTestCD==aDomainConfig[,testcd_ind],]
-        } else {
-          testConfig <- aDomainConfig[aSex==aDomainConfig$SEX & aDomainConfig$SPECIES == aSpecies & aDomainConfig$STRAIN == aStrain &
+          } else {
+            testConfig <- aDomainConfig[aSex==aDomainConfig$SEX & aDomainConfig$SPECIES == aSpecies & aDomainConfig$STRAIN == aStrain &
                                         aTestCD==aDomainConfig[,testcd_ind] &
                                         aSpec==aDomainConfig[,spec_ind],]
-        }
+          }
+        lastSetTestConfig <<- testConfig
+        lastSetTestConfigSettings <<- paste(aSex,aTestCD,aSpec,aSpecies,aStrain,sep=";;;")
+        } # end of test for same configuration
       }                                      
       totalProportion <- sum(testConfig[,prop_ind])
       
@@ -182,7 +204,7 @@ getStresuUnit <- function() {
   lastOrresu  
 }
 # returns column data based upon the column name
-getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime) {
+  getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime) {
   aData <- ""
   aSeqCol <- paste(aDomain,"SEQ",sep="")
   aTestCDCol <- paste(aDomain,"TESTCD",sep="")
