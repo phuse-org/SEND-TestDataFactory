@@ -8,9 +8,10 @@ readDomainStructures <-function() {
   } 
   # read from saved file
   # available since this was done and saved by developer: save(dfSENDIG,file=paste0(sourceDir,"/dfSENDIG.Rda"))
-   if (!bSENDIGRead) {
+  file <- paste0(sourceDir,"/dfSENDIG.Rda")
+  if (!bSENDIGRead && file.exists(file)) {
      print(" SENDIG being read from saved Rda file")
-     load(file=paste0(sourceDir,"/dfSENDIG.Rda"))
+     load(file)
       if (exists("dfSENDIG")) {
         print(" SENDIG successfully read")
         # ensure as global
@@ -74,10 +75,10 @@ isDomainStart <- function(aLine) {
     # found a table start
     # set the domain name
     theDomain <- toupper(substring(aLine,1,aLocation-1))
-    # print(paste("Reading SENDIG for theDomain",theDomain,aLine))
+    printDebug(paste("Reading SENDIG for theDomain",theDomain,aLine))
   } else if (aLocation2>0 & aLocation2<9) {
     theDomain <- "BW"
-    # print(paste("Reading SENDIG for theDomain",theDomain,aLine))
+    printDebug(paste("Reading SENDIG for theDomain",theDomain,aLine))
   }
   theDomain
 }
@@ -105,6 +106,12 @@ addDomainRow <- function(inLine,inDomain) {
     # if (inDomain=="CV") print (paste("debug A split created",aSplit," for line: ",inLine))
     dataFound <- FALSE
     newRow <- FALSE
+    
+    if  (gregexpr(pattern ="TFREFID",inLine)>=0) {  # Debug on parsing 
+      printDebug(paste("-----------For domain: ",inDomain))
+      printDebug(paste("Origina the length is:",length(aSplit[[1]])))
+      printDebug(aSplit)
+    }
     
     # if the first phrase has field description and merged together
     firstPhrase <-  aSplit[[1]][[1]]
@@ -221,10 +228,10 @@ addDomainRow <- function(inLine,inDomain) {
     # where column type is merged with the description
     if (length(aSplit[[1]])==4) {
       aPart <- trimws(aSplit[[1]][[2]])
-      aLoc <- gregexpr(pattern ="Num$",aPart)[[1]][1]
+      aLoc <- gregexpr(pattern =" Num$",aPart)[[1]][1]
       if (aLoc>1) {
         theList <- c(aSplit[[1]][[1]],
-                     substring(aPart,1,aLoc-1),substring(aPart,aLoc+1),
+                     substring(aPart,1,aLoc-1),"Num",
                      aSplit[[1]][[3]],aSplit[[1]][[4]])
         aSplit[[1]] <<- theList
       }
@@ -282,7 +289,7 @@ addDomainRow <- function(inLine,inDomain) {
       aLoc <- gregexpr(pattern ="Char$",aPart)[[1]][1]
       if (aLoc>1) {
         theList <- c(aSplit[[1]][[1]],
-                     substring(aPart,1,aLoc-1),substring(aPart,aLoc+1),
+                     substring(aPart,1,aLoc),"Char",
                      aSplit[[1]][[3]],aSplit[[1]][[4]])
         aSplit[[1]] <<- theList
       }
@@ -592,21 +599,22 @@ addDomainRow <- function(inLine,inDomain) {
       # continues within table still
       dataFound <- TRUE
     } # end of new page check
-    
+
     # add this row
     if (newRow) {
       bResult <- TRUE
-      dfSENDIG[nrow(dfSENDIG) + 1,] <<- list(inDomain,aColumn,aType,aLabel,aCodeList,anExpectancy)
+      dfSENDIG[nrow(dfSENDIG) + 1,] <<- list(trimws(inDomain),trimws(aColumn),trimws(aType),
+      trimws(aLabel),trimws(aCodeList),trimws(anExpectancy))
       addMoreToRow <<- 0
     }
     if (dataFound) bResult <- TRUE
   } # end of if not numeric
   # debug -
-  if (inDomain=="PP") {  # Debug on parsing 
-    print(paste("-----------For domain: ",inDomain))
-    print(paste(" the length is:",length(aSplit[[1]])))
-    print(inLine)
-    print(aSplit)
+  if  (gregexpr(pattern ="TFREFID",inLine)>=0) {  # Debug on parsing 
+    printDebug(paste("-----------For domain: ",inDomain))
+    printDebug(paste(" the length is:",length(aSplit[[1]])))
+    printDebug(inLine)
+    printDebug(aSplit)
     lastSplit <<- aSplit
   }
   bResult
