@@ -74,6 +74,7 @@ getTestCDs <- function(aDomain, aSex, aSpecies, aStrain) {
   switch(aDomain,
          "BW" = {aConfig <- getConfig("BW")},
          "CL" = {aConfig <- getConfig("CL")},
+         "FW" = {aConfig <- getConfig("FW")},
          "LB" = {aConfig <- getConfig("LB")},
          "MI" = {aConfig <- getConfig("MI")},
          "PM" = {aConfig <- getConfig("PM")},
@@ -92,6 +93,12 @@ getTestCDs <- function(aDomain, aSex, aSpecies, aStrain) {
            }
          },
          "CL" = {
+           aList <- aConfig[toupper(aConfig$SEX) == toupper(aSex) & toupper(aConfig$SPECIES) == toupper(aSpecies)&toupper(aConfig$STRAIN) == toupper(aStrain),testcd_ind]
+           if (length(aList)==0) {
+             stop(paste("Unable to find configurated tests for",aDomain,"for this species",aSpecies,"and strain",aStrain))
+           }
+         },
+         "FW" = {
            aList <- aConfig[toupper(aConfig$SEX) == toupper(aSex) & toupper(aConfig$SPECIES) == toupper(aSpecies)&toupper(aConfig$STRAIN) == toupper(aStrain),testcd_ind]
            if (length(aList)==0) {
              stop(paste("Unable to find configurated tests for",aDomain,"for this species",aSpecies,"and strain",aStrain))
