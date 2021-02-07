@@ -8,7 +8,7 @@ printDebug <- function(input) {
 }
 
 
-getTimeResponse <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay){
+getTimeResponse <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay, aTreatment){
 ## Time response difference returned based upon domain
   aValue <- 0
   if (aDomain=="BW") {
@@ -33,6 +33,29 @@ getTimeResponse <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay){
       aValue <- round(aValue * iDay/studyLength,digits=2)
       printDebug(paste("Debug 3 Study length is:", studyLength,"so add to this BW",aValue))
     }  # check on existance of domain configuration
+  }
+  
+  if(aDomain == "FW") {
+    #Pull in the response for FW if it exists
+    if(file.exists("configs/response/FWresponse.csv")) {
+      aDomainResponse <- read.csv("configs/response/FWresponse.csv")
+      # Filter domain responses for current values
+      print(aTestCD)
+      print(aSpecies)
+      print(aStrain)
+      print(aSex)
+      print(aTreatment)
+      aDomainResponse <- aDomainResponse[aDomainResponse$FWTESTCD == aTestCD &
+                                         aDomainResponse$SPECIES  == aSpecies &
+                                         aDomainResponse$STRAIN   == aStrain &
+                                         aDomainResponse$SEX      == aSex &
+                                         aDomainResponse$Group    == aTreatment,]
+      print(aDomainResponse)
+      anIntercept <- aDomainResponse[, "Intercept"]
+      aChange <- aDomainResponse[, "Change"]
+      aValue <- anIntercept + (aChange * iDay)
+    }
+    
   }
   # return the difference to add to the result so that it increases or decreases
   aValue

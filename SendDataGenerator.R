@@ -99,7 +99,7 @@ unique(aList)
 
 # from configuration, get column based upon incoming column (like testcd to test)
 getMatchColumn <- function(aDomain,aColumn1,aValue1,aColumn2) {
-  configFiles <- list.files("configs)")
+  configFiles <- list.files("configs")
   aConfig <- getConfig(aDomain)
   #print(paste("Matching columns from ",aColumn1,aValue1,aColumn2))
   # FIXME might need other discriminating factors like Sex, Species,...

@@ -267,7 +267,7 @@ if (file.exists('~/passwordGitHub.R')) {
 }
 
 # read configurations to be ready to display them at any time
-configList <- list("BG","BW","CL","LB","MA","MI","PC","PP","OM")
+configList <- list("BG","BW","CL", "FW", "LB","MA","MI","PC","PP","OM")
 for (domain in configList) {
   getConfig(domain);
 }
@@ -365,7 +365,7 @@ server <- function(input, output, session) {
   # Display Test Categories
   output$OutputCategories <- renderUI({
     testDomains <- c("BW", "CL", "FW", "LB", "OM", "MA", "MI", "EG","PC","PP")
-    testCategories <- c("Body weights","Clinical Observations","Food consumption (not ready)","Lab Tests",
+    testCategories <- c("Body weights","Clinical Observations","Food consumption","Lab Tests",
                         "Organ weights","Macropathology","Micropathology","ECG (not ready)",
                         "Pharmacokinetic Concentrations","Pharmacokinetic Parameters")
     checkboxGroupInput('testCategories','Data domains to create:',choiceValues=testDomains,choiceNames=testCategories,selected=testCategories)
@@ -412,6 +412,10 @@ server <- function(input, output, session) {
     exOut
   })
 
+  output$showFW <- renderTable({
+    fwOut
+  })
+  
   output$showBW <- renderTable({
     bwOut
   })
@@ -456,6 +460,10 @@ server <- function(input, output, session) {
   output$showCLConfig <- renderTable({
     CLconfig[str_to_upper(str_trim(CLconfig$SPECIES)) == input$species &
              str_to_upper(str_trim(CLconfig$STRAIN)) == input$strain, ]
+  })
+  output$showFWConfig <- renderTable({
+    FWconfig[str_to_upper(str_trim(FWconfig$SPECIES)) == input$species &
+               str_to_upper(str_trim(FWconfig$STRAIN)) == input$strain, ]
   })
   output$showLBConfig <- renderTable({
     LBconfig[str_to_upper(str_trim(LBconfig$SPECIES)) == input$species &
@@ -657,6 +665,14 @@ server <- function(input, output, session) {
                 target = "TS"
       )
     }
+    if (exists("fwOut")) {
+      removeTab(inputId = "navDatasets",target = "FW")
+      insertTab(inputId = "navDatasets",
+                tabPanel("FW",tableOutput("showFW")),
+                position = 'after',
+                target = "TS"
+      )
+    }
   })
   
       # Produce datasets
@@ -761,6 +777,7 @@ ui <- dashboardPage(
                          tabPanel("Body Weight Gain",tableOutput("showBGConfig")),
                          tabPanel("Body Weights",tableOutput("showBWConfig")),
                          tabPanel("Clinical Observations",tableOutput("showCLConfig")),
+                         tabPanel("Food and Water Consumption", tableOutput("showFWConfig")),
                          tabPanel("Lab Results",tableOutput("showLBConfig")),
                          tabPanel("Macroscopic Findings",tableOutput("showMAConfig")),
                          tabPanel("Microscopic Findings",tableOutput("showMIConfig")),

@@ -1,0 +1,65 @@
+FWTEST,FWTESTCD,SPECIES,STRAIN,SEX,Group,Intercept,Change
+Food Consumption,FC,DOG,BEAGLE,F,Vehicle Control,0,2
+Food Consumption,FC,DOG,BEAGLE,M,Vehicle Control,0,2
+Food Consumption,FC,MONKEY,CYNOMOLGUS,F,Vehicle Control,0,2
+Food Consumption,FC,MONKEY,CYNOMOLGUS,M,Vehicle Control,0,2
+Food Consumption,FC,MOUSE,BALB/C,F,Vehicle Control,0,2
+Food Consumption,FC,MOUSE,BALB/C,M,Vehicle Control,0,2
+Food Consumption,FC,MOUSE,C57BL/6,F,Vehicle Control,0,2
+Food Consumption,FC,MOUSE,C57BL/6,M,Vehicle Control,0,2
+Food Consumption,FC,MOUSE,CB6F1-TGN (RASH2),F,Vehicle Control,0,2
+Food Consumption,FC,MOUSE,CB6F1-TGN (RASH2),M,Vehicle Control,0,2
+Food Consumption,FC,RABBIT,NEW ZEALAND,F,Vehicle Control,0,2
+Food Consumption,FC,RABBIT,NEW ZEALAND,M,Vehicle Control,0,2
+Food Consumption,FC,RAT,SPRAGUE-DAWLEY,F,Vehicle Control,0,2
+Food Consumption,FC,RAT,SPRAGUE-DAWLEY,M,Vehicle Control,0,2
+Food Consumption,FC,RAT,WISTAR HAN,F,Vehicle Control,0,2
+Food Consumption,FC,RAT,WISTAR HAN,M,Vehicle Control,0,2
+Food Consumption,FC,DOG,BEAGLE,F,Group 2: Low dose,-1,4
+Food Consumption,FC,DOG,BEAGLE,M,Group 2: Low dose,-1,4
+Food Consumption,FC,MONKEY,CYNOMOLGUS,F,Group 2: Low dose,-1,4
+Food Consumption,FC,MONKEY,CYNOMOLGUS,M,Group 2: Low dose,-1,4
+Food Consumption,FC,MOUSE,BALB/C,F,Group 2: Low dose,-1,4
+Food Consumption,FC,MOUSE,BALB/C,M,Group 2: Low dose,-1,4
+Food Consumption,FC,MOUSE,C57BL/6,F,Group 2: Low dose,-1,4
+Food Consumption,FC,MOUSE,C57BL/6,M,Group 2: Low dose,-1,4
+Food Consumption,FC,MOUSE,CB6F1-TGN (RASH2),F,Group 2: Low dose,-1,4
+Food Consumption,FC,MOUSE,CB6F1-TGN (RASH2),M,Group 2: Low dose,-1,4
+Food Consumption,FC,RABBIT,NEW ZEALAND,F,Group 2: Low dose,-1,4
+Food Consumption,FC,RABBIT,NEW ZEALAND,M,Group 2: Low dose,-1,4
+Food Consumption,FC,RAT,SPRAGUE-DAWLEY,F,Group 2: Low dose,-1,4
+Food Consumption,FC,RAT,SPRAGUE-DAWLEY,M,Group 2: Low dose,-1,4
+Food Consumption,FC,RAT,WISTAR HAN,F,Group 2: Low dose,-1,4
+Food Consumption,FC,RAT,WISTAR HAN,M,Group 2: Low dose,-1,4
+Food Consumption,FC,DOG,BEAGLE,F,Group 3: Mid dose,-2,6
+Food Consumption,FC,DOG,BEAGLE,M,Group 3: Mid dose,-2,6
+Food Consumption,FC,MONKEY,CYNOMOLGUS,F,Group 3: Mid dose,-2,6
+Food Consumption,FC,MONKEY,CYNOMOLGUS,M,Group 3: Mid dose,-2,6
+Food Consumption,FC,MOUSE,BALB/C,F,Group 3: Mid dose,-2,6
+Food Consumption,FC,MOUSE,BALB/C,M,Group 3: Mid dose,-2,6
+Food Consumption,FC,MOUSE,C57BL/6,F,Group 3: Mid dose,-2,6
+Food Consumption,FC,MOUSE,C57BL/6,M,Group 3: Mid dose,-2,6
+Food Consumption,FC,MOUSE,CB6F1-TGN (RASH2),F,Group 3: Mid dose,-2,6
+Food Consumption,FC,MOUSE,CB6F1-TGN (RASH2),M,Group 3: Mid dose,-2,6
+Food Consumption,FC,RABBIT,NEW ZEALAND,F,Group 3: Mid dose,-2,6
+Food Consumption,FC,RABBIT,NEW ZEALAND,M,Group 3: Mid dose,-2,6
+Food Consumption,FC,RAT,SPRAGUE-DAWLEY,F,Group 3: Mid dose,-2,6
+Food Consumption,FC,RAT,SPRAGUE-DAWLEY,M,Group 3: Mid dose,-2,6
+Food Consumption,FC,RAT,WISTAR HAN,F,Group 3: Mid dose,-2,6
+Food Consumption,FC,RAT,WISTAR HAN,M,Group 3: Mid dose,-2,6
+Food Consumption,FC,DOG,BEAGLE,F,Group 4: High dose,-4,10
+Food Consumption,FC,DOG,BEAGLE,M,Group 4: High dose,-4,10
+Food Consumption,FC,MONKEY,CYNOMOLGUS,F,Group 4: High dose,-4,10
+Food Consumption,FC,MONKEY,CYNOMOLGUS,M,Group 4: High dose,-4,10
+Food Consumption,FC,MOUSE,BALB/C,F,Group 4: High dose,-4,10
+Food Consumption,FC,MOUSE,BALB/C,M,Group 4: High dose,-4,10
+Food Consumption,FC,MOUSE,C57BL/6,F,Group 4: High dose,-4,10
+Food Consumption,FC,MOUSE,C57BL/6,M,Group 4: High dose,-4,10
+Food Consumption,FC,MOUSE,CB6F1-TGN (RASH2),F,Group 4: High dose,-4,10
+Food Consumption,FC,MOUSE,CB6F1-TGN (RASH2),M,Group 4: High dose,-4,10
+Food Consumption,FC,RABBIT,NEW ZEALAND,F,Group 4: High dose,-4,10
+Food Consumption,FC,RABBIT,NEW ZEALAND,M,Group 4: High dose,-4,10
+Food Consumption,FC,RAT,SPRAGUE-DAWLEY,F,Group 4: High dose,-4,10
+Food Consumption,FC,RAT,SPRAGUE-DAWLEY,M,Group 4: High dose,-4,10
+Food Consumption,FC,RAT,WISTAR HAN,F,Group 4: High dose,-4,10
+Food Consumption,FC,RAT,WISTAR HAN,M,Group 4: High dose,-4,10

@@ -16,7 +16,7 @@ sameConfig  <- function(aSex,aTestCD,aSpec,aSpecies,aStrain) {
   answer
 }
 
-getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime){
+getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime, aTreatment){
   aDomainConfig <- getConfig(aDomain)
   ## If Domain is numeric
   if(aDomain %in% c("BG", "BW", "EG", "FW", "LB", "PC", "PP", "VS","OM")){
@@ -95,7 +95,7 @@ getOrres <- function(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime){
         aValue <- round(aValue, digits=2)
       }
       # now increase or decrease this based upon synthetic time response
-      aTimeResponse <- getTimeResponse(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay)
+      aTimeResponse <- getTimeResponse(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay, aTreatment)
       aValue <- aValue + aTimeResponse
       printDebug(paste(" DEBUG Domain: ",aDomain," sex: ",aSex," testcd: ",aTestCD))
       printDebug(paste("    DEBUG Test cd: ",testcd_ind," mean index and value: ",mean_ind,aValueMean,aValue))
@@ -235,7 +235,7 @@ getStresuUnit <- function() {
     aData <- getSENDTestCode(aCol,aTestCD)
   }
   if (aCol==aTestCol)  {aData <- getSENDLastTestCodeName(aCol,aDomain)}
-  if (aCol==aORRESCol) aData <- getOrres(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime)
+  if (aCol==aORRESCol) aData <- getOrres(aDomain,aSex,aTestCD,aSpec,aSpecies,aStrain,iDay,aTime, aTreatment)
   if (aCol==aORRESUCol) {aData <- getOrresUnit(aCol,aDomain,aSex,aTestCD,aSpecies,aStrain)}
   if (aCol==aSTRESCCol) {aData <- getStresc(aCol)}
   if (aCol==aSTRESNCol) {aData <- suppressWarnings(as.numeric(lastOrres))}
