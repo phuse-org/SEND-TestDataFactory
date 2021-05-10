@@ -204,7 +204,7 @@ getStresuUnit <- function() {
   lastOrresu  
 }
 # returns column data based upon the column name
-  getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime) {
+  getColumnData <- function (aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime,theArm) {
   aData <- ""
   aSeqCol <- paste(aDomain,"SEQ",sep="")
   aTestCDCol <- paste(aDomain,"TESTCD",sep="")
@@ -216,21 +216,21 @@ getStresuUnit <- function() {
   aSTRESUCol <- paste(aDomain,"STRESU",sep="")
   aSPECCol <- paste(aDomain,"SPEC",sep="")
   aDay <- paste(aDomain,"DY",sep="")
+  aDate <- paste(aDomain,"DTC",sep="")
   aNOMDYCol <- paste(aDomain,"NOMDY",sep="")
   aNOMLBLCol <- paste(aDomain,"NOMLBL",sep="")
   aELTM <- paste(aDomain,"ELTM",sep="")
   aTPT <- paste(aDomain,"TPT",sep="")
   aTPTNUM <- paste(aDomain,"TPTNUM",sep="")
   aTPTREF <- paste(aDomain,"TPTREF",sep="")
-  
+  aBLFL <- paste(aDomain,"BLFL",sep="")
   aData <- NA
   # Next line for help in debugging
   printDebug(paste(" Debug 3 Getting column data for:",aCol,aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,aSpec,aTime,sep=":"))
   if (aCol=="DOMAIN") aData <- aDomain
   if (aCol=="STUDYID") {aData <- aStudyID}
   if (aCol==aSeqCol) {aData <- aRow}
-  if (aCol=="USUBJID") {aData <- paste(aStudyID,"-",anAnimal,sep="")
-  }
+  if (aCol=="USUBJID") {aData <- createUSubjIDfromSubjID(aStudyID,anAnimal)}
   if (aCol==aTestCDCol) {
     aData <- getSENDTestCode(aCol,aTestCD)
   }
@@ -241,11 +241,18 @@ getStresuUnit <- function() {
   if (aCol==aSTRESNCol) {aData <- suppressWarnings(as.numeric(lastOrres))}
   if (aCol==aSTRESUCol) {aData <- getStresuUnit()}
   if (aCol==aDay) {aData <- iDay}
+  if (aCol==aDate) {aData <- as.character(as.Date(getStartDate())+iDay-1)}
   if (aSENDVersion=="3.0") {
     if (aCol=="VISITDY") {aData <- iDay}
   } else {
     if (aCol==aNOMDYCol) {aData <- iDay}
     if (aCol==aNOMLBLCol) {aData <- paste("Day",iDay)}
+  }
+  # set baseline as first day, unless PC domain
+  if (aCol==aBLFL && aDomain != "PC") {
+    if (iDay==1) {
+      aData <- "Y"
+    }
   }
   if (aCol==aSPECCol) aData <- aSpec
   if (aCol==aELTM) aData <- aTime

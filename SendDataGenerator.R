@@ -12,52 +12,76 @@ skipRow <- function(aTestCD,iDay,endDay) {
 }
 #
 
+# set description labels for each field 
+setLabels <- function(theDomain, theDataset) {
+  printDebug(paste("             In setLabels"))
+  theColumns <- labels(theDataset)[2]
+  printDebug(paste("             In setLabels, columns are",theColumns))
+  for (i in theColumns) {
+  for(aColumn in i){
+    aDescription <- dfSENDIG[dfSENDIG$Column==aColumn & dfSENDIG$Domain==theDomain,]$Label
+    Hmisc::label(theDataset[,aColumn]) <- aDescription
+    printDebug(paste("             In setLabels",aColumn,aDescription))
+    }
+  }
+  theDataset
+}
+
+removeColumns <- function(theDataSet) {
+  # if all NA, remove empty columns
+  theDataSet[theDataSet=="NA"] <- ""
+  emptycols <- sapply(theDataSet, function (k) all(is.na(k)))
+  theDataSet <- theDataSet[!emptycols]
+  theDataSet
+}
+
 # Sort the domain and resequence
-sortDomain <- function(aDomain) {
+sortDomain <- function(aDomain,aDataset) {
   switch(aDomain,
          "BW" = {
-           bwOut <<- arrange(bwOut,STUDYID,USUBJID,BWTESTCD,BWDY)
-           bwOut$BWSEQ <<- 1:nrow(bwOut) 
+           aDataset <- arrange(aDataset,STUDYID,USUBJID,BWTESTCD,BWDY)
+           aDataset$BWSEQ <- 1:nrow(aDataset) 
          },
          "CL" = {
-           clOut <<- arrange(clOut,STUDYID,USUBJID,CLTESTCD,CLDY)
-           clOut$CLSEQ <<- 1:nrow(clOut) 
+           aDataset <- arrange(aDataset,STUDYID,USUBJID,CLTESTCD,CLDY)
+           aDataset$CLSEQ <- 1:nrow(aDataset) 
          },
          "LB" = {
-           lbOut <<- arrange(lbOut,STUDYID,USUBJID,LBTESTCD,LBDY)
-           lbOut$LBSEQ <<- 1:nrow(lbOut) 
+           aDataset <- arrange(aDataset,STUDYID,USUBJID,LBTESTCD,LBDY)
+           aDataset$LBSEQ <- 1:nrow(aDataset) 
          },
          "FW" = {
-           fwOut <<- arrange(fwOut,STUDYID,USUBJID,FWTESTCD,FWDY)
-           fwOut$FWSEQ <<- 1:nrow(fwOut) 
+           aDataset <- arrange(aDataset,STUDYID,USUBJID,FWTESTCD,FWDY)
+           aDataset$FWSEQ <- 1:nrow(aDataset) 
          },
          "EG" = {
-           egOut <<- arrange(egOut,STUDYID,USUBJID,EGTESTCD,EGDY)
-           egOut$EGSEQ <<- 1:nrow(egOut) 
+           aDataset <- arrange(aDataset,STUDYID,USUBJID,EGTESTCD,EGDY)
+           aDataset$EGSEQ <- 1:nrow(aDataset) 
          },
          "MA" = {
-           maOut <<- arrange(maOut,STUDYID,USUBJID,MASPEC,MATESTCD,MADY)
-           maOut$MASEQ <<- 1:nrow(maOut) 
+           aDataset <- arrange(aDataset,STUDYID,USUBJID,MASPEC,MATESTCD,MADY)
+           aDataset$MASEQ <- 1:nrow(aDataset) 
          },
          "MI" = {
            printDebug(paste(" In sortDomain about to sort"))  
-           miOut <<- arrange(miOut,STUDYID,USUBJID,MISPEC,MITESTCD,MIDY)
+           aDataset <- arrange(aDataset,STUDYID,USUBJID,MISPEC,MITESTCD,MIDY)
            printDebug(paste(" In sortDomain sorted, now renumbering"))  
-           miOut$MISEQ <<- 1:nrow(miOut) 
+           aDataset$MISEQ <- 1:nrow(aDataset) 
          },
          "OM" = {
-           omOut <<- arrange(omOut,STUDYID,USUBJID,OMSPEC,OMTESTCD,OMDY)
-           omOut$OMSEQ <<- 1:nrow(omOut) 
+           aDataset <- arrange(aDataset,STUDYID,USUBJID,OMSPEC,OMTESTCD,OMDY)
+           aDataset$OMSEQ <- 1:nrow(aDataset) 
           },
          "PC" = {
-           pcOut <<- arrange(pcOut,STUDYID,USUBJID,PCTESTCD,PCDY,PCTPTNUM)
-           pcOut$PCSEQ <<- 1:nrow(pcOut) 
+           aDataset <- arrange(aDataset,STUDYID,USUBJID,PCTESTCD,PCDY,PCTPTNUM)
+           aDataset$PCSEQ <- 1:nrow(aDataset) 
           },
          "PP" = { 
-           ppOut <<- arrange(ppOut,STUDYID,USUBJID,PPTESTCD)
-           ppOut$PPSEQ <<- 1:nrow(ppOut) 
+           aDataset <- arrange(aDataset,STUDYID,USUBJID,PPTESTCD)
+           aDataset$PPSEQ <- 1:nrow(aDataset) 
          } 
   )
+  aDataset
 }
 
 # Get specimins for some domains
@@ -174,12 +198,6 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
   )
   # set other global variables for use
   theTestArticle <<- input$testArticle
-  # set labels for each field 
-  index <- 1
-  for (aColumn in theColumns) {
-    Hmisc::label(aDF[[index]]) <<- theLabels[index]
-    index <- index + 1
-  }
   aRow <- 1
   # set some defaults
   if (is.null(input$sex)) {
@@ -227,7 +245,7 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
               anAnimal <- paste0(iTreatment,aSex,anAnimalInGroup)
               printDebug(paste("For this animal:",anAnimal))
               # times per day for some domain
-              aTimes <- "Not used"
+              aTimes <- "NA"
               if (hasDays(aDF,aDomain)) {
                 # FIXME - use study length from configuration or user selection
                 startDay <- 1
@@ -259,9 +277,9 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
                 printDebug(paste("For this day:",iDay))
                   for (aTime in aTimes) {
                     printDebug(paste("    For this time:",aTime))
-                    printDebug(paste(" About to create row animal for",aTestCD, iDay, anAnimal, aTreatment, aSex,aSpec,input$species, input$strain, aTime))
+                    printDebug(paste(" About to create row animal for",aTestCD, iDay, anAnimalInGroup, aTreatment, aSex,aSpec,input$species, input$strain, aTime))
                     aRowList <<- createRowAnimal(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,
-                    input$studyName,aTestCD,iDay,aSpec,input$species, input$strain , input$SENDVersion,aTime)
+                    input$studyName,aTestCD,iDay,aSpec,input$species, input$strain , input$SENDVersion,aTime,iTreatment)
                     # replace empties with NA
                     aRowList <<- sub("$^", NA, aRowList)
                     printDebug(paste(" inserting",aRowList))
@@ -284,7 +302,7 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
 }
 
 createRowAnimal <- function(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,aStudyID,
-                            aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime) {
+                            aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime,theArm) {
  # create to hold the row
  aList <- vector(mode = "list", length = 100)
  printDebug(paste("Creating row for:",aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,aSpec,aSpecies,aStrain))
@@ -294,7 +312,7 @@ createRowAnimal <- function(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,aStudyID,
  for (aCol in labels(aDF)[2][[1]]) {
    # add value to the list of column values, based upon the column name
    columnData <- getColumnData(aCol,aSex,aTreatment,anAnimal,aRow,aDomain,
-                                aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime)
+                                aStudyID,aTestCD,iDay,aSpec,aSpecies,aStrain,aSENDVersion,aTime,theArm)
    aList[[iCol]] <- columnData
    iCol <- iCol + 1
  }
@@ -320,12 +338,16 @@ setAnimalDataFiles <- function(input) {
       aDescription <- paste(aDomain,"domain") #FIXME - read description from SENDIG
       aDFReturned <<- createAnimalDataDomain(input,aDomain,aDescription,aDFName)
       aDFReturned <<- aDFReturned[, checkCore(aDFReturned)]
+      # remove any columns that are empty
+      aDFReturned <<- removeColumns(aDFReturned)
+      # sort to get a desired output order
+      aDFReturned <<- sortDomain(aDomain,aDFReturned)
+      # set numeric needs to happen after sort recreates sequence
       aDFReturned <<- setSENDNumeric(aDFReturned)
+      aDFReturned <<- setLabels(aDomain,aDFReturned)
       # now reset the name of this dataframe to keep it
       assign(aDFName, aDFReturned, envir=.GlobalEnv)
       addToSet(aDomain,aDescription,aDFName)
-      # sort to get a desired output order
-      sortDomain(aDomain)
       # showing timer results
       print(paste("Time to create",aDomain," is:"))
       print(proc.time() - aTimer)

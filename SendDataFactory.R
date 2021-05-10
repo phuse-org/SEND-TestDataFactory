@@ -61,7 +61,8 @@ list.of.packages <- c("shiny","shinyalert",
 "pdftools",
 "rhandsontable",
 "parsedate",
-"shinyjs")
+"shinyjs",
+"dplyr")
 
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
@@ -90,6 +91,7 @@ library(DT)
 library(pdftools)
 library(rhandsontable)
 library(parsedate)
+library(dplyr)
 
 if(packageVersion("SASxport") < "1.6.0") {
   stop("You need version 1.6.0 or later of SASxport")
@@ -100,7 +102,7 @@ sourceDir <<- getSrcDirectory(function(dummy) {dummy})
 
 # set debug on or off for more print statements
 debugMode <<- FALSE
-#debugMode <<- TRUE
+debugMode <<- TRUE
 lastColumnQueriedCD <<- ""
 lastColumnQueried <<- ""
 lastTestNameResult <<- ""
@@ -303,7 +305,7 @@ server <- function(input, output, session) {
   # Display Send versions
   output$SENDVersion <- renderUI({
     SENDVersion <- c("3.0","3.1", "DART 1.1")
-    radioButtons('SENDVersion','Select SEND Version:',SENDVersion,selected=SENDVersion[1])
+    radioButtons('SENDVersion','Select SEND Version:',SENDVersion,selected=SENDVersion[2])
   })
 
   # Display output type
@@ -317,20 +319,20 @@ server <- function(input, output, session) {
   output$Species <- renderUI({
     # Get species choices from the code list
     species <- getCTDF("Species", input$CTSelection)[,"CDISC.Submission.Value"]
-    selectInput('species','Select species:',species,selected=species[1])
+    selectInput('species','Select species:',species,selected=species[22])
   })
   
   # Display output type
   output$Strain <- renderUI({
     # FIXME - these should come from a configuration file,conditional on species
     strain <- getCTDF("Strain/Substrain", input$CTSelection)[,"CDISC.Submission.Value"]
-    selectInput('strain','Select strain:',strain,selected=strain[1])
+    selectInput('strain','Select strain:',strain,selected=strain[83])
   })
 
     # Display Study types
   output$StudyType <- renderUI({
     # FIXME - these should come from a configuration file
-    studyType <- c("Single-dose","Multi-dose","Carcinogenicity","Safety Pharm - Respiratory","Safety Pharm - Cardiovascular","Early Fetal Development")
+    studyType <- c("SINGLE DOSE TOXICITY","REPEAT DOSE TOXICITY","CARCINOGENICITY","RESPIRATORY PHARMACOLOGY","CARDIOVASCULAR PHARMACOLOGY","EMBRYO FETAL DEVELOPMENT")
     radioButtons('studyType','Select Study Type:',studyType,selected=studyType[1])
   })
 
@@ -404,6 +406,10 @@ server <- function(input, output, session) {
     dmOut
   })
 
+  output$showSE <- renderTable({
+    seOut
+  })
+  
   output$showDS <- renderTable({
     dsOut
   })
@@ -593,6 +599,14 @@ server <- function(input, output, session) {
               target = "TS"
     )
     }
+    if (exists("seOut")) {
+      removeTab(inputId = "navDatasets",target = "SE")
+      insertTab(inputId = "navDatasets",
+                tabPanel("SE",tableOutput("showSE")),
+                position = 'after',
+                target = "TS"
+      )
+    }
     if (exists("dsOut")) {
       removeTab(inputId = "navDatasets",target = "DS")
       insertTab(inputId = "navDatasets",
@@ -661,6 +675,14 @@ server <- function(input, output, session) {
       removeTab(inputId = "navDatasets",target = "BW")
       insertTab(inputId = "navDatasets",
                 tabPanel("BW",tableOutput("showBW")),
+                position = 'after',
+                target = "TS"
+      )
+    }
+    if (exists("exOut")) {
+      removeTab(inputId = "navDatasets",target = "EX")
+      insertTab(inputId = "navDatasets",
+                tabPanel("EX",tableOutput("showEX")),
                 position = 'after',
                 target = "TS"
       )

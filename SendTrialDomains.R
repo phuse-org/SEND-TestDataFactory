@@ -79,12 +79,6 @@ setTSFile <- function(input) {
   tsOut <<- setNames(data.frame(matrix(ncol = length(theColumns), nrow = 1)),
                      theColumns
   )
-  # set labels for each field 
-  index <- 1
-  for (aColumn in theColumns) {
-    Hmisc::label(tsOut[[index]]) <<- theLabels[index]
-    index <- index + 1
-  }
   aRow <- 1
   if (!is.null(input$testArticle)) {
     tsOut[aRow,] <<- list(input$studyName,
@@ -137,7 +131,7 @@ setTSFile <- function(input) {
                           "",
                           "SNDIGVER",
                           "SEND Implementation Guide Version",
-                          paste("SEND Implementation Guide Version",input$SENDVersion),
+                          str_to_upper(paste("SEND Implementation Guide Version",input$SENDVersion)),
                           "")        
     aRow <- aRow + 1
   }
@@ -152,6 +146,37 @@ setTSFile <- function(input) {
                           "")        
     aRow <- aRow + 1
   }
+  
+  # calculate animals per group
+  animalsCount <- length(input$sex)*length(input$treatment)*(as.integer(input$TKanimalsPerGroup)+as.integer(input$animalsPerGroup))
+  printDebug(paste("Total number of animals",length(input$sex),length(input$treatment),as.integer(input$TKanimalsPerGroup),as.integer(input$animalsPerGroup)))
+  tsOut[aRow,] <<- list(input$studyName,
+                          aDomain,
+                          aRow,
+                          "",
+                          "SPLANSUB",
+                          "Planned Number of Subjects",
+                          animalsCount,
+                          "")        
+  aRow <- aRow + 1
+  if (!is.null(input$sex)) {
+    if (length(input$sex)==2) {
+      theSEXPOP <- "BOTH"      
+    }
+    else {
+      theSEXPOP <- input$sex[1]      
+    }
+    tsOut[aRow,] <<- list(input$studyName,
+                          aDomain,
+                          aRow,
+                          "",
+                          "SEXPOP",
+                          "Sex of Participants",
+                          theSEXPOP,
+                          "")        
+    aRow <- aRow + 1
+  }
+  
   # Add in the other TS values
   for(index in 1:nrow(TSFromFile)) {
     tsOut[aRow,] <<- list(input$studyName,
@@ -164,7 +189,17 @@ setTSFile <- function(input) {
                           "")        
     aRow <- aRow + 1
   }
+  # fix to numeric the sequence
+  tsOut$TSSEQ <<- as.numeric(tsOut$TSSEQ) 
+  # set labels for each field 
+  index <- 1
+  for (aColumn in theColumns) {
+    Hmisc::label(tsOut[[index]]) <<- theLabels[index]
+    index <- index + 1
+  }
   tsOut <<- tsOut[, checkCore(tsOut)]
+  printDebug(" TS domain made: ")
+  printDebug(tsOut)
   # add to set of data
   addToSet("TS","TRIAL SUMMARY","tsOut")
 }
@@ -177,12 +212,6 @@ setTEFile <- function(input) {
   tOut <<- setNames(data.frame(matrix(ncol = length(theColumns), nrow = 1)),
                      theColumns
   )
-  # set labels for each field 
-  index <- 1
-  for (aColumn in theColumns) {
-    Hmisc::label(tOut[[index]]) <<- theLabels[index]
-    index <- index + 1
-  }
   aRow <- 1
   # create element for pretreatment
   if ("Pre-treatment" %in% input$elementOptions ) {
@@ -225,6 +254,13 @@ setTEFile <- function(input) {
     aRow <- aRow + 1
   }
   # save final
+  tOut <<- setSENDNumeric(tOut)
+  # set labels for each field 
+  index <- 1
+  for (aColumn in theColumns) {
+    Hmisc::label(tOut[[index]]) <<- theLabels[index]
+    index <- index + 1
+  }
   teOut <<- tOut[, checkCore(tOut)]
   # add to set of data
   addToSet("TE","TRIAL ELEMENTS","teOut")
@@ -238,12 +274,6 @@ setTAFile <- function(input) {
   tOut <<- setNames(data.frame(matrix(ncol = length(theColumns), nrow = 1)),
                     theColumns
   )
-  # set labels for each field 
-  index <- 1
-  for (aColumn in theColumns) {
-    Hmisc::label(tOut[[index]]) <<- theLabels[index]
-    index <- index + 1
-  }
   # assume 1 arm per dose group, first one is control
   nArm <- 1
   aRow <- 1
@@ -289,7 +319,7 @@ setTAFile <- function(input) {
   if ("Recovery" %in% input$elementOptions ) {
     tOut[aRow,] <<- list(input$studyName,
                          aDomain,
-                         nArm,
+                         as.character(nArm),
                          armName,
                          anElement,
                          teOut$ETCD[nrow(teOut)],
@@ -303,6 +333,13 @@ setTAFile <- function(input) {
     nArm <- nArm+1
   } # treatment count loop
   # save final
+  tOut <<- setSENDNumeric(tOut)
+  # set labels for each field 
+  index <- 1
+  for (aColumn in theColumns) {
+    Hmisc::label(tOut[[index]]) <<- theLabels[index]
+    index <- index + 1
+  }
   taOut <<- tOut[, checkCore(tOut)]
   # add to set of data
   addToSet("TA","TRIAL ARMS","taOut")
@@ -316,12 +353,6 @@ setTXFile <- function(input) {
   tOut <<- setNames(data.frame(matrix(ncol = length(theColumns), nrow = 1)),
                     theColumns
   )
-  # set labels for each field 
-  index <- 1
-  for (aColumn in theColumns) {
-    Hmisc::label(tOut[[index]]) <<- theLabels[index]
-    index <- index + 1
-  }
   # assume 1 set per dosage group, double if TK
   nSet <- 1
   nArm <- 1
@@ -344,7 +375,7 @@ setTXFile <- function(input) {
     for (iLoop in 1:getTrialSetInfoCount(theGroup)) {
       tOut[aRow,] <<- list(input$studyName,
                          aDomain,
-                         nSet,
+                         as.character(nSet),
                          name,
                          aRow,
                          trialSetInfo(iLoop,1,nArm,name,theGroup,FALSE,numMales,numFemales,DoseFromFile),
@@ -360,7 +391,7 @@ setTXFile <- function(input) {
         for (iLoop in 1:getTrialSetInfoCount(theGroup)) {
           tOut[aRow,] <<- list(input$studyName,
                                aDomain,
-                               nSet,
+                               as.character(nSet),
                                name,
                                aRow,
                                trialSetInfo(iLoop,1,nArm,name,theGroup,TRUE,numMalesTK,numFemalesTK,DoseFromFile),
@@ -374,6 +405,13 @@ setTXFile <- function(input) {
     nArm <- nArm+1
   } # treatment count loop
   # save final
+  tOut <<- setSENDNumeric(tOut)
+  # set labels for each field 
+  index <- 1
+  for (aColumn in theColumns) {
+    Hmisc::label(tOut[[index]]) <<- theLabels[index]
+    index <- index + 1
+  }
   txOut <<- tOut[, checkCore(tOut)]
   # add to set of data
   addToSet("TX","TRIAL SETS","txOut")
