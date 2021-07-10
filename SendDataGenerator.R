@@ -260,13 +260,18 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
                 endDay <- 10
               }
               # for PC and PP, just 1 day of data, day 1
-              if (aDomain=="PP" || aDomain=="PC") {
+              if (aDomain=="PC") {
                 startDay <- 1
                 endDay <- 1
                 # and read time list from configuration
                 aTimes <- getConfigTimes(aDomain)
               }
               
+              if (aDomain=="PP") {
+                startDay <- 1
+                endDay <- 1
+              }
+
               # for OM, MA and MI, just 1 day of data, last day of study
               if (aDomain=="MA" || aDomain=="MI" || aDomain=="OM") {
                 startDay <- 10
@@ -280,6 +285,7 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
                     printDebug(paste(" About to create row animal for",aTestCD, iDay, anAnimalInGroup, aTreatment, aSex,aSpec,input$species, input$strain, aTime))
                     aRowList <<- createRowAnimal(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,
                     input$studyName,aTestCD,iDay,aSpec,input$species, input$strain , input$SENDVersion,aTime,iTreatment)
+                    #
                     # replace empties with NA
                     aRowList <<- sub("$^", NA, aRowList)
                     printDebug(paste(" inserting",aRowList))
@@ -306,7 +312,6 @@ createRowAnimal <- function(aSex,aTreatment,anAnimal,aDF,aRow,aDomain,aStudyID,
  # create to hold the row
  aList <- vector(mode = "list", length = 100)
  printDebug(paste("Creating row for:",aSex,aTreatment,anAnimal,aRow,aDomain,aStudyID,aTestCD,aSpec,aSpecies,aStrain))
- printDebug(paste("Getting values for:",labels(aDF)[2][[1]]))
  # loop on fields in data frame
  iCol <- 1
  for (aCol in labels(aDF)[2][[1]]) {
@@ -335,11 +340,15 @@ setAnimalDataFiles <- function(input) {
       percentOfList <- index/length(DomainsList)
       setProgress(value=percentOfList,message=paste('Producing dataset: ',aDomain))
       aDFName <- paste(tolower(aDomain),"Out",sep="")
-      aDescription <- paste(aDomain,"domain") #FIXME - read description from SENDIG
+      aDescription <- paste(aDomain,"domain") 
+      #FIXME - read description from SENDIG
       aDFReturned <<- createAnimalDataDomain(input,aDomain,aDescription,aDFName)
+      # some variables calculated based upon items set
+      aDFReturned <<- addCalcColumns(aDFReturned,aDomain)
+      # remove permissible columns that are empty
       aDFReturned <<- aDFReturned[, checkCore(aDFReturned)]
-      # remove any columns that are empty
-      aDFReturned <<- removeColumns(aDFReturned)
+      # next line not needed, as above line removes permissible columns that are empty
+      # aDFReturned <<- removeColumns(aDFReturned)
       # sort to get a desired output order
       aDFReturned <<- sortDomain(aDomain,aDFReturned)
       # set numeric needs to happen after sort recreates sequence

@@ -37,19 +37,20 @@ readDomainStructures <-function() {
 # This function checks columns to verify if the column needs to be included
 # based upon the columns core requirement. Returns a logical vector. TRUE
 # if it should be included, FALSE otherwise
-# TODO: This isn't very effiecent
 checkCore <- function(dataset) {
   
   # Create vector for permisable columns
   domain_i <- unique(dataset$DOMAIN)
-  cores <- dfSENDIG[dfSENDIG$Domain == domain_i, "Expectancy"]
-  isPerm <- cores == "Perm"
-  
+  perms <- dfSENDIG[dfSENDIG$Domain == domain_i & dfSENDIG$Expectancy=="Perm","Column"]
+
   # Create TF vector for blank cols
   blankCol <- apply(dataset, 2, function(x) all(is.na(x)))
-  
-  # Return vector where both conditions are true.
-  !(isPerm & blankCol)
+  blankCol2 <- names(blankCol)[blankCol == T]
+  # reduce blank list to those which are also permissible
+  toRemove <-  intersect(perms,blankCol2)
+  # Return list of columns minus the to remove ones
+  `%notin%` <- Negate(`%in%`)
+  which(names(dataset) %notin% toRemove)
 }
 
 # Reset within the dataframe as numeric columns that should be numeric

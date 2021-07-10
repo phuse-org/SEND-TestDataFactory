@@ -22,6 +22,7 @@ readConfig <- function(configFile){
   sdInd <- str_detect(configFileColumns, "(STRESSD)$")
   unitInd <- str_detect(configFileColumns, "(STRESU)$")
   factorInd <- str_detect(configFileColumns, "(STRESC)$")
+  rescatInd <- str_detect(configFileColumns, "(RESCAT)$")
   proportionInd <- str_detect(configFileColumns,"(FREQ)$")
   eltmInd<- str_detect(configFileColumns,"(ELTM)$")
   tptInd<- str_detect(configFileColumns,"(TPT)$")
@@ -40,6 +41,7 @@ readConfig <- function(configFile){
     sd = configFile[sdInd],
     unit = configFile[unitInd],
     fact = configFile[factorInd],
+    rescat = configFile[rescatInd],
     prop = configFile[proportionInd],
     eltm = configFile[eltmInd],
     tpt = configFile[tptInd],

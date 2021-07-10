@@ -238,6 +238,7 @@ setDSFile <- function(input) {
           tOut[aRow,]$DSTERM <<- "Exsanguinated"
           # get last element for animal
           lastElement <- getAnimalMaxDateColumnOther(seOut,aUSUBJID,"SEENDTC","ELEMENT")
+          printDebug("  Determine last element")
           if (as.character(lastElement$ELEMENT)=="Recovery period") {
             tOut[aRow,]$DSDECOD <<- "RECOVERY SACRIFICE"
             tOut[aRow,]$DSNOMLBL <<- "Recovery Sacrifice" 
@@ -246,24 +247,31 @@ setDSFile <- function(input) {
             tOut[aRow,]$DSNOMLBL <<- "Terminal Sacrifice" 
           }
           # get last date on study
+          printDebug("  Determine last date on study")
           aDSSTDTC <- getAnimalMaxDateColumn(seOut,aUSUBJID,"SEENDTC")
           tOut[aRow,]$DSSTDTC <<- aDSSTDTC
           # get number of days on study
+          printDebug("  Determine number of days on study")
           aDiffDate <- as.character(as.Date(aDSSTDTC) - as.Date(getAnimalColumn(dmOut,aUSUBJID,"RFSTDTC"))+1)
           tOut[aRow,]$DSSTDY <<- aDiffDate
           tOut[aRow,]$DSNOMDY <<- aDiffDate
           tOut[aRow,]$DSNOMLBL <<- "Terminal Sacrifice" 
+          printDebug("added TK animals to DS")
+          printDebug(tail(tOut))
           aRow <- aRow + 1
         } # end TK animal loop
     } # end of sex loop
     } # end of TK check
     theArm <- theArm + 1
   } # end group loop
-  tOut <<- removeColumns(tOut)
+  # add needed empty expected variable
+  tOut$DSUSCHFL <<- ""
   tOut <<- setSENDNumeric(tOut)
   printDebug(paste("Now setting DS labels"))
   # set labels for each field 
-  dsOut <<- setLabels (aDomain, tOut)
+  tOut <<- setLabels (aDomain, tOut)
+  # remove permissible empty columns
+  dsOut <<- tOut[, checkCore(tOut)]
   # add to set of data
   addToSet("DS","Disposition","dsOut")
 }
@@ -419,3 +427,33 @@ setEXFile <- function(input) {
   # add to set of data
   addToSet("EX","Exposure","exOut")
 }
+
+addCalcColumns <<- function (inDF,theDomain) {
+  # add calculated values that depend upon data already there
+  # PPCAT
+  if (theDomain=="PP") {
+    for(i in 1:nrow(inDF)) {
+      testcd <- inDF$PPTESTCD[i]
+      # use value from first one
+      inDF$PPCAT <- PPconfig[PPconfig$PPTESTCD==testcd,"PPCAT"][1]
+    }
+  }
+  # MIRESCAT
+  if (theDomain=="MI") {""
+    for(i in 1:nrow(inDF)) {
+      finding <- inDF$MISTRESC[i]
+      # use value from first one matching
+      inDF$MIRESCAT <- MIconfig[MIconfig$MISTRESC==finding,"MIRESCAT"][1]
+    }
+  }
+  # STINT and ENINT
+  if (theDomain=="PP") {
+    for(i in 1:nrow(inDF)) {
+      # for those of type AUCINT these need start/stop interval
+      inDF[inDF$PPTESTCD=="AUCINT",]$PPSTINT <- "PT0H"
+      inDF[inDF$PPTESTCD=="AUCINT",]$PPENINT <- "PT12H"
+    }
+  }
+  inDF  
+}
+
