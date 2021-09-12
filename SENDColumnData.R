@@ -195,6 +195,38 @@ getOrresUnit <- function(aCol,aDomain,aSex,aTestCD,aSpecies,aStrain){
   aValue
 }
 
+getCatVal <- function(aDomain,aTestCD){
+  # Get category based on unique value of testCd
+  aDomainConfig <- getConfig(aDomain)
+  ## If config found
+  if(exists("aDomainConfig") && !is.null(aDomainConfig)) {
+    testcd_ind <- str_which(names(aDomainConfig), "TESTCD")
+    catInd <- str_which(names(aDomainConfig), "(CAT)$")
+  } else {
+    stop(paste("Unable to find configuration"))
+  }
+  # get unit from configuration matching testcd
+  aValue <- "Not yet set"
+  aValue <- unique(aDomainConfig[aDomainConfig[,testcd_ind] == aTestCD,catInd])[1]
+  aValue
+}
+
+getSpecVal <- function(aDomain,aTestCD){
+  # Get specimen based on unique value of testCd
+  aDomainConfig <- getConfig(aDomain)
+  ## If config found
+  if(exists("aDomainConfig") && !is.null(aDomainConfig)) {
+    testcd_ind <- str_which(names(aDomainConfig), "TESTCD")
+    specInd <- str_which(names(aDomainConfig), "(SPEC)$")
+  } else {
+    stop(paste("Unable to find configuration"))
+  }
+  # get unit from configuration matching testcd
+  aValue <- "Not yet set"
+  aValue <- unique(aDomainConfig[aDomainConfig[,testcd_ind] == aTestCD,specInd])[1]
+  aValue
+}
+
 getStresc <- function(aCol){
   # for now assume it is the same as the last orres
   lastOrres
@@ -214,13 +246,16 @@ getStresuUnit <- function() {
   aSTRESNCol <- paste(aDomain,"STRESN",sep="")
   aORRESUCol <- paste(aDomain,"ORRESU",sep="")
   aSTRESUCol <- paste(aDomain,"STRESU",sep="")
-  aSPECCol <- paste(aDomain,"SPEC",sep="")
+  aSpecCol <- paste(aDomain,"SPEC",sep="")
   aDay <- paste(aDomain,"DY",sep="")
+  aDayEnd <- paste(aDomain,"ENDY",sep="")
   aDate <- paste(aDomain,"DTC",sep="")
+  aDateEnd <- paste(aDomain,"ENDTC",sep="")
   aNOMDYCol <- paste(aDomain,"NOMDY",sep="")
   aNOMLBLCol <- paste(aDomain,"NOMLBL",sep="")
   aELTM <- paste(aDomain,"ELTM",sep="")
   aTPT <- paste(aDomain,"TPT",sep="")
+  aCatCol <- paste(aDomain,"CAT",sep="")
   aTPTNUM <- paste(aDomain,"TPTNUM",sep="")
   aTPTREF <- paste(aDomain,"TPTREF",sep="")
   aBLFL <- paste(aDomain,"BLFL",sep="")
@@ -231,6 +266,10 @@ getStresuUnit <- function() {
   if (aCol=="STUDYID") {aData <- aStudyID}
   if (aCol==aSeqCol) {aData <- aRow}
   if (aCol=="USUBJID") {aData <- createUSubjIDfromSubjID(aStudyID,anAnimal)}
+  if (aCol==aCatCol && (aDomain=="CL" || aDomain=="LB")) {
+    aData <- getCatVal(aDomain,aTestCD)
+    printDebug(paste("               retreived cat value: ",aDomain,aTestCD,aData))
+  }
   if (aCol==aTestCDCol) {
     aData <- getSENDTestCode(aCol,aTestCD)
   }
@@ -241,7 +280,9 @@ getStresuUnit <- function() {
   if (aCol==aSTRESNCol) {aData <- suppressWarnings(as.numeric(lastOrres))}
   if (aCol==aSTRESUCol) {aData <- getStresuUnit()}
   if (aCol==aDay) {aData <- iDay}
+  if (aCol==aDayEnd && aDomain=="FW") {aData <- iDay+7}
   if (aCol==aDate) {aData <- as.character(as.Date(getStartDate())+iDay-1)}
+  if (aCol==aDateEnd && aDomain=="FW") {aData <- as.character(as.Date(getStartDate())+iDay-1+7)}
   if (aSENDVersion=="3.0") {
     if (aCol=="VISITDY") {aData <- iDay}
   } else {
@@ -254,7 +295,9 @@ getStresuUnit <- function() {
       aData <- "Y"
     }
   }
-  if (aCol==aSPECCol) aData <- aSpec
+  if (aCol==aSpecCol) aData <- aSpec
+  # some specimen look up instead
+  if (aCol==aSpecCol && (aDomain=="LB")) {aData <- getSpecVal(aDomain,aTestCD)}
   if (aCol==aELTM) aData <- aTime
   if (aCol==aTPT) aData <- getTPT(aDomain,aSex,aTestCD,aSpec,aSpecies,aTime)
   if (aCol==aTPTNUM) aData <- getTPTNUM(aDomain,aSex,aTestCD,aSpec,aSpecies,aTime)

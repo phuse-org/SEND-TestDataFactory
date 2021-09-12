@@ -249,15 +249,15 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
               if (hasDays(aDF,aDomain)) {
                 # FIXME - use study length from configuration or user selection
                 startDay <- 1
-                endDay <- 10
+                endDay <- 8
               } else {
                 startDay <- 1
                 endDay <- 1  
               }
-              # for Lab, just 1 day of data, last day of study
+              # for Lab, just 2 days of data, FIXME to other choices
               if (aDomain=="LB") {
-                startDay <- 10
-                endDay <- 10
+                startDay <- 1
+                endDay <- 2
               }
               # for PC and PP, just 1 day of data, day 1
               if (aDomain=="PC") {
