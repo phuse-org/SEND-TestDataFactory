@@ -221,7 +221,7 @@ getSpecVal <- function(aDomain,aTestCD){
   } else {
     stop(paste("Unable to find configuration"))
   }
-  # get unit from configuration matching testcd
+  # get from configuration matching testcd
   aValue <- "Not yet set"
   aValue <- unique(aDomainConfig[aDomainConfig[,testcd_ind] == aTestCD,specInd])[1]
   aValue

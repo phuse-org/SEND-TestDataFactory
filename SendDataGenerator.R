@@ -279,6 +279,8 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
               }
               # loop over day
               for (iDay in startDay:endDay) {
+                # for certain domains, use mode to skip certain days, like days 2-7 for food consumption, so is 1/week
+                if (aDomain!="FW" || (aDomain=="FW" && (iDay%%7)==1)) {
                 printDebug(paste("For this day:",iDay))
                   for (aTime in aTimes) {
                     printDebug(paste("    For this time:",aTime))
@@ -297,6 +299,7 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
                       aRow <- aRow + 1
                     } # end of skip data row check
                   } # end of loop on time per day
+                } # skip some days
               } # end of day loop
             } # end of animal loop
           } # end of treament loop
