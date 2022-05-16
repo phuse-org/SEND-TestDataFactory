@@ -1,4 +1,6 @@
 # These functions work together with the SendDataFactory
+# Replaced df TSFromFile with reactive object TSFromFile() - Michael
+# Replaced df DoseFromFile with reactive object DoseFromFile() - Michael
 
 # convert ISO duration to days
 DUR_to_days <- function(duration) {
@@ -54,8 +56,8 @@ txnames <- c(
     else if (iParam==3) {unique(taOut$ARM)[theArm]}
     else if (iParam==4) {theSetName}
     # assumes males and females same dose level
-    else if (iParam==5) {DoseFromFile$Male.dose.level[theArm]}
-    else if (iParam==6) {as.character(DoseFromFile$Male.dose.units[theArm])}
+    else if (iParam==5) {DoseFromFile()$Male.dose.level[theArm]}
+    else if (iParam==6) {as.character(DoseFromFile()$Male.dose.units[theArm])}
     else if (iParam==7) { # control type
       theGroup }
     else if (iParam==8) {
@@ -178,14 +180,14 @@ setTSFile <- function(input) {
   }
   
   # Add in the other TS values
-  for(index in 1:nrow(TSFromFile)) {
+  for(index in 1:nrow(TSFromFile())) {
     tsOut[aRow,] <<- list(input$studyName,
                           aDomain,
                           aRow,
                           "",
-                          as.character(TSFromFile$TSPARMCD[index]),
-                          as.character(TSFromFile$TSPARM[index]),
-                          as.character(TSFromFile$TSVAL[index]),
+                          as.character(TSFromFile()$TSPARMCD[index]),
+                          as.character(TSFromFile()$TSPARM[index]),
+                          as.character(TSFromFile()$TSVAL[index]),
                           "")        
     aRow <- aRow + 1
   }
