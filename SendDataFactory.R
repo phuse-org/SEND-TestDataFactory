@@ -55,7 +55,7 @@ list.of.packages <- c("shiny","shinyalert",
 "tools",
 "Hmisc",
 "XLConnect",
-"SASxport",
+"haven",
 "utils",
 "DT",
 "pdftools",
@@ -63,7 +63,7 @@ list.of.packages <- c("shiny","shinyalert",
 "parsedate",
 "shinyjs",
 "dplyr")
-
+# changed since SASxport is not available - Michael
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos = "http://cran.us.r-project.org")
@@ -85,7 +85,7 @@ library(httr)
 library(tools)
 library(Hmisc)
 library(XLConnect)
-library(SASxport)
+library(haven) # changed since SASxport is not available - Michael
 library(utils)
 library(DT)
 library(pdftools)
@@ -93,9 +93,14 @@ library(rhandsontable)
 library(parsedate)
 library(dplyr)
 
-if(packageVersion("SASxport") < "1.6.0") {
-  stop("You need version 1.6.0 or later of SASxport")
-}
+#if(packageVersion("SASxport") < "1.6.0") {
+#  stop("You need version 1.6.0 or later of SASxport")
+#}
+# changed since SASxport is not available - Michael
+
+
+# Preparing 'close the window' - Michael
+jscode <- "shinyjs.closeApp = function() { window.close(); }"
 
 # sourcedir works in rstudio
 sourceDir <<- getSrcDirectory(function(dummy) {dummy})
@@ -110,17 +115,17 @@ lastTestCodeLookup <<- ""
 
 # Source Functions
 # allow to work offline by not using the next line:
-source('https://raw.githubusercontent.com/phuse-org/phuse-scripts/master/contributed/Nonclinical/R/Functions/Functions.R')
+#source('https://raw.githubusercontent.com/phuse-org/phuse-scripts/master/contributed/Nonclinical/R/Functions/Functions.R')
 #  Use this next line if not on internet
 #  source(paste(sourceDir, '/Functions.R', sep = ""))
-source(paste(sourceDir, "/SENDTimeResponse.R", sep=""))
-source(paste(sourceDir, "/SENDColumnData.R", sep=""))
-source(paste(sourceDir, "/SendDataGenerator.R", sep=""))
-source(paste(sourceDir, "/SendTrialDomains.R", sep=""))
-source(paste(sourceDir, "/SendAnimalDomains.R", sep=""))
-source(paste(sourceDir, "/SendIgReader.R", sep=""))
-source(paste(sourceDir, "/CtReader.R", sep=""))
-source(paste(sourceDir, "/ConfigData.R", sep=""))
+#source(paste(sourceDir, "/SENDTimeResponse.R", sep=""))
+#source(paste(sourceDir, "/SENDColumnData.R", sep=""))
+#source(paste(sourceDir, "/SendDataGenerator.R", sep=""))
+#source(paste(sourceDir, "/SendTrialDomains.R", sep=""))
+#source(paste(sourceDir, "/SendAnimalDomains.R", sep=""))
+#source(paste(sourceDir, "/SendIgReader.R", sep=""))
+#source(paste(sourceDir, "/CtReader.R", sep=""))
+#source(paste(sourceDir, "/ConfigData.R", sep=""))
 
 # Functions
 convertMenuItem <- function(mi,tabName) {
@@ -167,24 +172,26 @@ checkRequiredInput <- function(input) {
 # read TS from CSV file saved
 readTSCSVFile <-function() {
   setwd(sourceDir)
-  TSFromFile <<- read.csv("TSFileSettings.csv", header=TRUE)
+  #TSFromFile <<- # csv file is stored as a reactive object in the server section - Michael
+    read.csv("TSFileSettings.csv", header=TRUE)
 }
 
-# write TS to CSV file  
-writeTSCSVFile <-function() {
-  write.csv(TSFromFile,"TSFileSettings.csv",row.names=FALSE)
-}
+# write TS to CSV file  - not necessary since TSFromFile is now a reactive object - Michael
+#writeTSCSVFile <-function() {
+#  write.csv(TSFromFile,"TSFileSettings.csv",row.names=FALSE)
+#}
 
 # read Dose from CSV file saved
 readDoseFile <-function() {
   setwd(sourceDir)
-  DoseFromFile <<- read.csv("DosingConfiguration.csv", header=TRUE)
+  #DoseFromFile <<- # csv file is stored as a reactive object in the server section - Michael
+    read.csv("DosingConfiguration.csv", header=TRUE)
 }
 
-# write TS to CSV file  
-writeDoseFile <-function() {
-  write.csv(DoseFromFile,"DosingConfiguration.csv",row.names=FALSE)
-}
+# write TS to CSV file  - not necessary since DoseFromFile is now a reactive object - Michael
+#writeDoseFile <-function() {
+#  write.csv(DoseFromFile,"DosingConfiguration.csv",row.names=FALSE)
+#}
 
 # Add to list to be output
 addToSet <<- function(inDomain,inDescription,inDataframe) {
@@ -225,29 +232,38 @@ setOutputData <- function(input) {
     studyData[is.na(studyData)] <- ""
     studyData[studyData=="NA"] <- ""
     # Set length for character fields
-    SASformat(studyData$DOMAIN) <-"$2."	
+    #SASformat(studyData$DOMAIN) <-"$2."	# SASformat is an argument of SASxport, therefore deactivated - Michael
     # place this dataset into a list with a name
     aList <- list(studyData)
     # name it
-    names(aList)[1]<-domain
+    #names(aList)[1]<-domain # causes domain variable names to include domain abbreviation, e.g. TS.STUDYID - Michael
     # and label it
     attr(aList,"label") <- domainLabel
     # write out dataframe
     aTime <- proc.time()
-    write.xport(
-      list=aList,
-      file = tempFile,
-      verbose=FALSE,
-      sasVer="7.00",
-      osType=R.version.string,	
-      cDate=Sys.time(),
-      formats=NULL,
-      autogen.formats=TRUE
+    #test for debugging
+    #write.csv(x=aList,
+    #          file = tempFile,
+    #          row.names = F)
+    
+    #print(domainLabel)
+    print(as.data.frame(aList[1]))
+    #print(names(aList[1]))
+    
+    write_xpt(
+      data = as.data.frame(aList[1]), # list=aList,
+      path = tempFile, # file = tempFile,
+      #verbose=FALSE,
+      version = 5 # sasVer="7.00",
+      #osType=R.version.string,	
+      #cDate=Sys.time(),
+      #formats=NULL,
+      #autogen.formats=TRUE
     )
     printDebug(" Written to export file")
     printDebug(proc.time()-aTime)
   }
-
+# changed since SASxport is not available - Michael
 
 
 
@@ -286,8 +302,15 @@ server <- function(input, output, session) {
   # Read domain structures
   readDomainStructures()
   # Read TS domain other values
-  readTSCSVFile()
-  readDoseFile()
+  #readTSCSVFile()
+  #readDoseFile()
+  
+  # Read csv file and store 'TSFromFile' as reactive object - Michael
+  TSFromFile <<- reactive({readTSCSVFile()})
+  
+  # Read csv file and store 'DoseFromFile' as reactive object - Michael
+  DoseFromFile <<- reactive({readDoseFile()})
+  
   
   # Store Client Data Regarding previous choices
   cdata <- session$clientData
@@ -495,14 +518,14 @@ server <- function(input, output, session) {
   })
   
       output$TSTable <- renderRHandsontable({
-     rhandsontable(TSFromFile) %>%
+      rhandsontable(TSFromFile()) %>% # changed to reactive object - Michael
       hot_col(col = "TSPARMCD", type = "text") %>%
       hot_col(col = "TSPARM", type = "text") %>%
       hot_col(col = "TSVAL", type = "text")
   })
   
   output$DoseTable <- renderRHandsontable({
-    rhandsontable(DoseFromFile) %>%
+    rhandsontable(DoseFromFile()) %>% # changed to reactive object - Michael
       hot_col(col = "Dose.group", type = "text") %>%
       hot_col(col = "Male.dose.level", type = "text") %>%
       hot_col(col = "Male.dose.units", type = "text") %>%
@@ -553,17 +576,18 @@ server <- function(input, output, session) {
       zip
       })
     }
-  )  
+  )
   
-  observeEvent(input$saveTSOther, {  
-    
-    TSFromFile <<-  hot_to_r(input$TSTable)
-    writeTSCSVFile()
+  observeEvent(input$saveTSOther, {
+    TSFromFile <<-  reactive({hot_to_r(input$TSTable)}) # changed to reactive object - Michael
+    #writeTSCSVFile()
+    print(TSFromFile()) # print to console for confirmation - Michael
   })
 
     observeEvent(input$saveDoseConf, {  
-    DoseFromFile <<-  hot_to_r(input$DoseTable)
-    writeDoseFile()
+    DoseFromFile <<-  reactive({hot_to_r(input$DoseTable)}) # changed to reactive object - Michael
+    #writeDoseFile()
+    print(DoseFromFile()) # print to console for confirmation - Michael
   })
 
   observeEvent(input$bShowdatasets, {
@@ -718,6 +742,14 @@ server <- function(input, output, session) {
                  })
                })
   
+  
+  # Close the window - Michael
+  observeEvent(input$close, {
+    js$closeApp()
+    stopApp()
+  })
+  
+  
   isolate({updateTabItems(session, "sidebar", "SEND_IG_Structure")})
 }
 
@@ -760,7 +792,13 @@ ui <- dashboardPage(
                     menuItem("Show datasets", tabName = "showDatasets", icon = icon('database')), 
                     menuItem('Download Data',icon=icon('angle-double-right'),startExpanded=T,
                              downloadButton("downloadData", "Download dataset")
-                    )
+                    ),
+                    menuItem('Close Application', tabName = "Close Application", icon = icon('times-circle'),
+                             useShinyjs(),
+                             extendShinyjs(text = jscode, functions = c("closeApp")),
+                             actionButton(inputId = "close",
+                                          label = "Close Application"))
+                    # Close Application menu item added  - Michael
                    )
    ),
   
