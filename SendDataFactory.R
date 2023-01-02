@@ -62,6 +62,7 @@ list.of.packages <- c("shiny","shinyalert",
 "rhandsontable",
 "parsedate",
 "shinyjs",
+"stringr",
 "dplyr")
 # changed since SASxport is not available - Michael
 
@@ -91,13 +92,8 @@ library(DT)
 library(pdftools)
 library(rhandsontable)
 library(parsedate)
+library(stringr)
 library(dplyr)
-
-#if(packageVersion("SASxport") < "1.6.0") {
-#  stop("You need version 1.6.0 or later of SASxport")
-#}
-# changed since SASxport is not available - Michael
-
 
 # Preparing 'close the window' - Michael
 jscode <- "shinyjs.closeApp = function() { window.close(); }"
@@ -115,17 +111,17 @@ lastTestCodeLookup <<- ""
 
 # Source Functions
 # allow to work offline by not using the next line:
-#source('https://raw.githubusercontent.com/phuse-org/phuse-scripts/master/contributed/Nonclinical/R/Functions/Functions.R')
+source('https://raw.githubusercontent.com/phuse-org/phuse-scripts/master/contributed/Nonclinical/R/Functions/Functions.R')
 #  Use this next line if not on internet
 #  source(paste(sourceDir, '/Functions.R', sep = ""))
-#source(paste(sourceDir, "/SENDTimeResponse.R", sep=""))
-#source(paste(sourceDir, "/SENDColumnData.R", sep=""))
-#source(paste(sourceDir, "/SendDataGenerator.R", sep=""))
-#source(paste(sourceDir, "/SendTrialDomains.R", sep=""))
-#source(paste(sourceDir, "/SendAnimalDomains.R", sep=""))
-#source(paste(sourceDir, "/SendIgReader.R", sep=""))
-#source(paste(sourceDir, "/CtReader.R", sep=""))
-#source(paste(sourceDir, "/ConfigData.R", sep=""))
+source(paste(sourceDir, "/SENDTimeResponse.R", sep=""))
+source(paste(sourceDir, "/SENDColumnData.R", sep=""))
+source(paste(sourceDir, "/SendDataGenerator.R", sep=""))
+source(paste(sourceDir, "/SendTrialDomains.R", sep=""))
+source(paste(sourceDir, "/SendAnimalDomains.R", sep=""))
+source(paste(sourceDir, "/SendIgReader.R", sep=""))
+source(paste(sourceDir, "/CtReader.R", sep=""))
+source(paste(sourceDir, "/ConfigData.R", sep=""))
 
 # Functions
 convertMenuItem <- function(mi,tabName) {
@@ -761,7 +757,7 @@ ui <- dashboardPage(
   dashboardSidebar(width=sidebarWidth,
                    sidebarMenu(id='sidebar',
                     menuItem('Output settings',icon=icon('database'),startExpanded=T,
-                              selectInput("CTSelection", "CT Version", choices = CTVersions, selected = "2021-06-25"),
+                              selectInput("CTSelection", "CT Version", choices = CTVersions, selected = "2022-12-16"),
                               withSpinner(uiOutput('SENDVersion'),type=7,proxy.height='200px'),
                               withSpinner(uiOutput('Outputtype'),type=7,proxy.height='200px')
                      ),
