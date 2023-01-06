@@ -1,4 +1,6 @@
 # These functions work together with the SendDataFactory
+# Replaced df TSFromFile with reactive object TSFromFile() - Michael
+# Replaced df DoseFromFile with reactive object DoseFromFile() - Michael
 
 createSubjID <- function(iTreatment,aSex,anAnimal) {
   # create animal number with treament and sex characters
@@ -27,18 +29,18 @@ getArmFromSet <- function(inSetCD) {
 
 getStartDate <- function() {
   # get start date for all animals
-  as.character(TSFromFile[TSFromFile$TSPARMCD=="STSTDTC",]$TSVAL)
+  as.character(TSFromFile()[TSFromFile()$TSPARMCD=="STSTDTC",]$TSVAL)
 }
 getEndDate <- function() {
   # get end date for all animals
-  aDuration <-(TSFromFile[TSFromFile$TSPARMCD=="TRMSAC",]$TSVAL)
+  aDuration <-(TSFromFile()[TSFromFile()$TSPARMCD=="TRMSAC",]$TSVAL)
   pattern <- gregexpr('[0-9]+',aDuration)
   studyLength <- as.integer(regmatches(aDuration,pattern))
   as.character(as.Date(getStartDate())+studyLength)
 }
 getStudyLength <- function() {
   # get end date for all animals
-  aDuration <-(TSFromFile[TSFromFile$TSPARMCD=="TRMSAC",]$TSVAL)
+  aDuration <-(TSFromFile()[TSFromFile()$TSPARMCD=="TRMSAC",]$TSVAL)
   pattern <- gregexpr('[0-9]+',aDuration)
   studyLength <- as.integer(regmatches(aDuration,pattern))
 }
@@ -56,7 +58,7 @@ getEndDateTK <- function() {
   as.character(as.Date(getStartDate())+TKLength)
 }
 getAgeNumber <- function() {
-  anAge <-as.character((TSFromFile[TSFromFile$TSPARMCD=="AGETXT",]$TSVAL))
+  anAge <-as.character((TSFromFile()[TSFromFile()$TSPARMCD=="AGETXT",]$TSVAL))
   #remove Days or Weeks
   anAge <- sub("DAYS","",toupper(anAge))
   sub(" ","",toupper(anAge))
@@ -86,7 +88,7 @@ getAnimalColumn <- function(aDf,aUsub,aCol) {
 }
 
 getAgeUnits  <- function() {
-  anAgeUnit <-as.character((TSFromFile[TSFromFile$TSPARMCD=="AGEU",]$TSVAL))
+  anAgeUnit <-as.character((TSFromFile()[TSFromFile()$TSPARMCD=="AGEU",]$TSVAL))
   #return the same units from ts
   str_trim(anAgeUnit)
 }
@@ -375,8 +377,8 @@ setEXFile <- function(input) {
   dosingTable <- input$DoseTable
   
   print("Check TS table read from file with changes by user")
-  print(TSFromFile)
-  startDate <- TSFromFile[TSFromFile$TSPARMCD == "STSTDTC","TSVAL"]
+  #print(TSFromFile())
+  startDate <- TSFromFile()[TSFromFile()$TSPARMCD == "STSTDTC","TSVAL"]
   # TODO: make this more robust
   # Only implemented for single dose right now
   animalList <-as.character(dmOut$USUBJID)
@@ -387,14 +389,14 @@ setEXFile <- function(input) {
     armcd_i <- dmOut[dmOut$USUBJID == animal_i, "ARMCD"]
     theArm <- dmOut[dmOut$USUBJID == animal_i, "ARM"]
     dose_level_i <- ifelse(sex_i == "M",
-                           DoseFromFile[DoseFromFile$Dose.group == armcd_i, "Male.dose.level"], # Male dose level
-                           DoseFromFile[DoseFromFile$Dose.group == armcd_i, "Female.dose.level"]) # Female dose level
+                           DoseFromFile()[DoseFromFile()$Dose.group == armcd_i, "Male.dose.level"], # Male dose level
+                           DoseFromFile()[DoseFromFile()$Dose.group == armcd_i, "Female.dose.level"]) # Female dose level
     dose_unit_i <- ifelse(sex_i == "M",
-                          as.character(DoseFromFile[DoseFromFile$Dose.group == armcd_i, "Male.dose.units"]), # Male dose unit
-                          as.character(DoseFromFile[DoseFromFile$Dose.group == armcd_i, "Female.dose.units"])) # Female dose unit
+                          as.character(DoseFromFile()[DoseFromFile()$Dose.group == armcd_i, "Male.dose.units"]), # Male dose unit
+                          as.character(DoseFromFile()[DoseFromFile()$Dose.group == armcd_i, "Female.dose.units"])) # Female dose unit
     lot_i <- ifelse(sex_i == "M",
-                          as.character(DoseFromFile[DoseFromFile$Dose.group == armcd_i, "Male.Lot"]), # Male lot
-                          as.character(DoseFromFile[DoseFromFile$Dose.group == armcd_i, "Female.Lot"])) # Female lot
+                          as.character(DoseFromFile()[DoseFromFile()$Dose.group == armcd_i, "Male.Lot"]), # Male lot
+                          as.character(DoseFromFile()[DoseFromFile()$Dose.group == armcd_i, "Female.Lot"])) # Female lot
     
       tOut[aRow,]$STUDYID <<- input$studyName
       tOut[aRow,]$DOMAIN <<- aDomain
@@ -405,12 +407,12 @@ setEXFile <- function(input) {
       tOut[aRow,]$EXDOSU <<- dose_unit_i
       tOut[aRow,]$EXDOSFRM <<- "UNKNOWN"
       tOut[aRow,]$EXDOSFRQ <<- "ONCE"
-      tOut[aRow,]$EXROUTE <<- as.character(TSFromFile[TSFromFile$TSPARMCD == "ROUTE", "TSVAL"])
+      tOut[aRow,]$EXROUTE <<- as.character(TSFromFile()[TSFromFile()$TSPARMCD == "ROUTE", "TSVAL"])
       if (!isControl(theArm)) {
         tOut[aRow,]$EXLOT <<-lot_i
       }
-      tOut[aRow,]$EXTRTV <<- TSFromFile[TSFromFile$TSPARMCD == "TRTV", "TSVAL"]
-      tOut[aRow,]$EXSTDTC <<- as.character(TSFromFile[TSFromFile$TSPARMCD == "STSTDTC", "TSVAL"])
+      tOut[aRow,]$EXTRTV <<- TSFromFile()[TSFromFile()$TSPARMCD == "TRTV", "TSVAL"]
+      tOut[aRow,]$EXSTDTC <<- as.character(TSFromFile()[TSFromFile()$TSPARMCD == "STSTDTC", "TSVAL"])
       tOut[aRow,]$EXSTDY <<- 1
       printDebug(tOut[aRow,])
       aRow <- aRow + 1

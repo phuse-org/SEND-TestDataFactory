@@ -2,10 +2,18 @@
 
 
 # 
-skipRow <- function(aTestCD,iDay,endDay) {
+skipRow <- function(aTestCD,iDay,aStudy,anAnimal,aDomain) {
   aResult <- FALSE
   # skip terminal body weight except on last day
-  if (aTestCD=="TERMBW" && (iDay != endDay)) {
+  if (aDomain=="BW") {
+	aUSUBJID <- createUSubjIDfromSubjID(aStudy,anAnimal)
+    endDay <- getAnimalColumn(dsOut,aUSUBJID,"DSSTDY")
+	if (aTestCD=="TERMBW" && (iDay != endDay)) {
+		aResult <- TRUE
+	}
+  }
+  # mode to skip certain days, like days 2-7 for food consumption, so is 1/week
+  if (aDomain=="FW" && (iDay%%7)==1) {
     aResult <- TRUE
   }
   aResult
@@ -227,8 +235,7 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
     aTestCD <-  as.character(aCodes[i,])
     aSpecs <- getSpecs(aDomain,aSex,aTestCD,input$species, input$strain)
     printDebug(paste("  For this test code:",aTestCD))
-    if (!skipRow(aTestCD,iDay,endDay)) {
-      for(iSpec in 1:length(aSpecs)) {
+    for(iSpec in 1:length(aSpecs)) {
         skipDataRow <<- FALSE
         aSpec <- as.character(aSpecs[iSpec])
         printDebug(paste("    For this specimen:",aSpec))
@@ -274,13 +281,14 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
 
               # for OM, MA and MI, just 1 day of data, last day of study
               if (aDomain=="MA" || aDomain=="MI" || aDomain=="OM") {
-                startDay <- 10
-                endDay <- 10
+			    aUSUBJID <- createUSubjIDfromSubjID(input$studyName,anAnimal)
+                startDay <- getAnimalColumn(dsOut,aUSUBJID,"DSSTDY")
+                endDay <- startDay
               }
               # loop over day
               for (iDay in startDay:endDay) {
-                # for certain domains, use mode to skip certain days, like days 2-7 for food consumption, so is 1/week
-                if (aDomain!="FW" || (aDomain=="FW" && (iDay%%7)==1)) {
+                # for certain domains, skip some rows
+				if (!skipRow(aTestCD,iDay,input$studyName,anAnimal,aDomain)){
                 printDebug(paste("For this day:",iDay))
                   for (aTime in aTimes) {
                     printDebug(paste("    For this time:",aTime))
@@ -303,8 +311,7 @@ createAnimalDataDomain <- function(input,aDomain,aDescription,aDFName) {
               } # end of day loop
             } # end of animal loop
           } # end of treament loop
-      } # end of loop on specimen
-    } # end of skipRow check
+    } # end of loop on specimen
    } # end of test loop
   } # end of sex loop
   aDF
@@ -344,19 +351,17 @@ setAnimalDataFiles <- function(input) {
       setProgress(value=percentOfList,message=paste('Producing dataset: ',aDomain))
       aDFName <- paste(tolower(aDomain),"Out",sep="")
       aDescription <- paste(aDomain,"domain") 
-      #FIXME - read description from SENDIG
+      #read description from SENDIG
       aDFReturned <<- createAnimalDataDomain(input,aDomain,aDescription,aDFName)
       # some variables calculated based upon items set
       aDFReturned <<- addCalcColumns(aDFReturned,aDomain)
-      # remove permissible columns that are empty
-      aDFReturned <<- aDFReturned[, checkCore(aDFReturned)]
-      # next line not needed, as above line removes permissible columns that are empty
-      # aDFReturned <<- removeColumns(aDFReturned)
       # sort to get a desired output order
       aDFReturned <<- sortDomain(aDomain,aDFReturned)
       # set numeric needs to happen after sort recreates sequence
       aDFReturned <<- setSENDNumeric(aDFReturned)
       aDFReturned <<- setLabels(aDomain,aDFReturned)
+      # remove permissible columns that are empty
+      aDFReturned <<- aDFReturned[, checkCore(aDFReturned)]
       # now reset the name of this dataframe to keep it
       assign(aDFName, aDFReturned, envir=.GlobalEnv)
       addToSet(aDomain,aDescription,aDFName)
